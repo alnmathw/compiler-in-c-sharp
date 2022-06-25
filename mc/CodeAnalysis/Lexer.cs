@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Minsk.CodeAnalysis
 {
-    class Lexer
+    internal sealed class Lexer
     {
         private readonly string _text;
         private int _position;
@@ -84,4 +84,4 @@ namespace Minsk.CodeAnalysis
             return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
         }
     }
-}                 
+}
