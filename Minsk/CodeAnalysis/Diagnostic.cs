@@ -1,3 +1,5 @@
+using Minsk.CodeAnalysis.Text;
+
 namespace Minsk.CodeAnalysis
 {
     public sealed class Diagnostic
@@ -13,4 +15,4 @@ namespace Minsk.CodeAnalysis
 
         public override string ToString() => Message;
     }
-} 
+}
