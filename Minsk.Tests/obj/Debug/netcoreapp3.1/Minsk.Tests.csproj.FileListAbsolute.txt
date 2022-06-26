@@ -96,3 +96,5 @@
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/obj/Debug/netcoreapp3.1/Minsk.Tests.dll
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/obj/Debug/netcoreapp3.1/Minsk.Tests.pdb
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/obj/Debug/netcoreapp3.1/Minsk.Tests.genruntimeconfig.cache
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/bin/Debug/netcoreapp3.1/System.Collections.Immutable.dll
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/bin/Debug/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll

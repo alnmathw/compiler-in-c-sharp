@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "REDsTGDmCCaGroyiSvQRkSXyci16dhU2QluYqVU0/z/SjjnKR3yxlTy8saNNkr5TbpKUcL3NMIPaKU8iclKiWQ==",
+  "dgSpecHash": "p7eTWUNILIFRb2jBmJIovMxn4GEzQfzI569tYop3Kf1zY/kQt6Qy24sBnjsRKyFqrsPsr7gcgnMrKSkifZ1AAA==",
   "success": true,
   "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/mc.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/alnmathw/.nuget/packages/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+  ],
   "logs": []
 }
