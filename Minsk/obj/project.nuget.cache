@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "HEIkfwcSB2E2W3dZqtseDoJSnDlcBOB85qeqIQq1V2U4v9ghjyleQ3eGsbiZc8iSuXHySu+Yn36dPTEK7L3V6w==",
+  "success": true,
+  "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/Minsk.csproj",
+  "expectedPackageFiles": [
+    "/home/alnmathw/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/netstandard.library/2.0.3/netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
