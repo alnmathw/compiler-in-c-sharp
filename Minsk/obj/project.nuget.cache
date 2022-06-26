@@ -1,11 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "HEIkfwcSB2E2W3dZqtseDoJSnDlcBOB85qeqIQq1V2U4v9ghjyleQ3eGsbiZc8iSuXHySu+Yn36dPTEK7L3V6w==",
+  "dgSpecHash": "a8/HMQpbIHrqL6NYNq5BimjBWE0IUQCthm3T/UaaDAl5xBwGEv5lLeZU45ulyFm/WQtWb7z6nHLZbDip73zeSA==",
   "success": true,
   "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/Minsk.csproj",
   "expectedPackageFiles": [
     "/home/alnmathw/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
-    "/home/alnmathw/.nuget/packages/netstandard.library/2.0.3/netstandard.library.2.0.3.nupkg.sha512"
+    "/home/alnmathw/.nuget/packages/netstandard.library/2.0.3/netstandard.library.2.0.3.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.numerics.vectors/4.4.0/system.numerics.vectors.4.4.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5R0xXfSHcPKawqoxVVSmvImmydg0xr2Xv2NXNlVPPEmioDtWd7fR2M8ZWLCs78RYOrcf7INv76tMt+aGpbreBw==",
+  "dgSpecHash": "2gL0ujLXQaClRHCuiifBW7GcW8cP4iSkRadRnCn1UNYR+MWdnWcXpCVvHtYPcN6WK2QsbfsveiKKEi8otyi3/A==",
   "success": true,
   "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk.Tests/Minsk.Tests.csproj",
   "expectedPackageFiles": [
@@ -15,6 +15,7 @@
     "/home/alnmathw/.nuget/packages/newtonsoft.json/9.0.1/newtonsoft.json.9.0.1.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/nuget.frameworks/5.0.0/nuget.frameworks.5.0.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.collections/4.0.11/system.collections.4.0.11.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.diagnostics.debug/4.0.11/system.diagnostics.debug.4.0.11.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.diagnostics.tools/4.0.1/system.diagnostics.tools.4.0.1.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.dynamic.runtime/4.0.11/system.dynamic.runtime.4.0.11.nupkg.sha512",
@@ -24,6 +25,7 @@
     "/home/alnmathw/.nuget/packages/system.io.filesystem.primitives/4.0.1/system.io.filesystem.primitives.4.0.1.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.linq/4.1.0/system.linq.4.1.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.linq.expressions/4.1.0/system.linq.expressions.4.1.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.objectmodel/4.0.12/system.objectmodel.4.0.12.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.reflection/4.1.0/system.reflection.4.1.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.reflection.emit/4.0.1/system.reflection.emit.4.0.1.nupkg.sha512",
@@ -34,6 +36,7 @@
     "/home/alnmathw/.nuget/packages/system.reflection.typeextensions/4.1.0/system.reflection.typeextensions.4.1.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.resources.resourcemanager/4.0.1/system.resources.resourcemanager.4.0.1.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.runtime/4.1.0/system.runtime.4.1.0.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.runtime.extensions/4.1.0/system.runtime.extensions.4.1.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.runtime.handles/4.0.1/system.runtime.handles.4.0.1.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.runtime.interopservices/4.1.0/system.runtime.interopservices.4.1.0.nupkg.sha512",
