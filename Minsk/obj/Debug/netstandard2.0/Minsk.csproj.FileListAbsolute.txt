@@ -1,0 +1,9 @@
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/bin/Debug/netstandard2.0/Minsk.deps.json
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/bin/Debug/netstandard2.0/Minsk.dll
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/bin/Debug/netstandard2.0/Minsk.pdb
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.csprojAssemblyReference.cache
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.AssemblyInfoInputs.cache
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.AssemblyInfo.cs
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.csproj.CoreCompileInputs.cache
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.dll
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/Minsk/obj/Debug/netstandard2.0/Minsk.pdb

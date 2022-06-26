@@ -11,3 +11,6 @@
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/obj/Debug/netcoreapp3.1/mc.dll
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/obj/Debug/netcoreapp3.1/mc.pdb
 /home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/obj/Debug/netcoreapp3.1/mc.genruntimeconfig.cache
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/bin/Debug/netcoreapp3.1/Minsk.dll
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/bin/Debug/netcoreapp3.1/Minsk.pdb
+/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/mc/obj/Debug/netcoreapp3.1/mc.csproj.CopyComplete
