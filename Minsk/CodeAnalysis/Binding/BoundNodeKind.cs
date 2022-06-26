@@ -10,6 +10,9 @@ namespace Minsk.CodeAnalysis.Binding
         // Expressions
         LiteralExpression,
         VariableExpression,
+        IfStatement,
+        WhileStatement,
+        ForStatement,
         AssignmentExpression,
         UnaryExpression,
         BinaryExpression,
