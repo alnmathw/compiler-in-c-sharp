@@ -30,4 +30,4 @@ namespace Minsk.CodeAnalysis.Syntax
         BinaryExpression,
         ParenthesizedExpression,
     }
-}
+} 

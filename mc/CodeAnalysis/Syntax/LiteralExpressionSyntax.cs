@@ -24,4 +24,4 @@ namespace Minsk.CodeAnalysis.Syntax
             yield return LiteralToken;
         }
     }
-}
+} 

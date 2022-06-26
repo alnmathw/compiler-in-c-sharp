@@ -8,13 +8,13 @@ namespace Minsk.CodeAnalysis.Binding
         private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type type)
          : this(syntaxKind, kind, type, type, type)
         {
-            
+
         }
 
         private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type operandType, Type resultType)
          : this(syntaxKind, kind, operandType, operandType, resultType)
         {
-            
+
         }
 
         private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type leftType, Type rightTye, Type resultType)
@@ -58,3 +58,4 @@ namespace Minsk.CodeAnalysis.Binding
             return null;
         }
     }
+}

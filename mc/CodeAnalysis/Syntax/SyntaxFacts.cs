@@ -58,4 +58,4 @@ namespace Minsk.CodeAnalysis.Syntax
             }
         }
     }
-}
+} 
