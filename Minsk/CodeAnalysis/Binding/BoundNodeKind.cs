@@ -12,6 +12,7 @@ namespace Minsk.CodeAnalysis.Binding
         VariableExpression,
         IfStatement,
         WhileStatement,
+        ForStatement,
         AssignmentExpression,
         UnaryExpression,
         BinaryExpression,
