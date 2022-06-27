@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Minsk.CodeAnalysis;
 using Minsk.CodeAnalysis.Syntax;
 using Xunit;
+using Minsk.CodeAnalysis.Symbols;
 
 namespace Minsk.Tests.CodeAnalysis
 {

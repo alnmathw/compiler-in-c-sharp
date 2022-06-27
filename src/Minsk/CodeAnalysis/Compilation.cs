@@ -7,6 +7,7 @@ using System.Threading;
 using Minsk.CodeAnalysis.Binding;
 using Minsk.CodeAnalysis.Lowering;
 using Minsk.CodeAnalysis.Syntax;
+using Minsk.CodeAnalysis.Symbols;
 
 namespace Minsk.CodeAnalysis
 {
