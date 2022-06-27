@@ -19,6 +19,12 @@ namespace Minsk.CodeAnalysis.Binding
                     return RewriteWhileStatement((BoundWhileStatement)node);
                 case BoundNodeKind.ForStatement:
                     return RewriteForStatement((BoundForStatement)node);
+                case BoundNodeKind.LabelStatement:
+                    return RewriteLabelStatement((BoundLabelStatement)node);
+                case BoundNodeKind.GotoStatement:
+                    return RewriteGotoStatement((BoundGotoStatement)node);
+                case BoundNodeKind.ConditionalGotoStatement:
+                    return RewriteConditionalGotoStatement((BoundConditionalGotoStatement)node);
                 case BoundNodeKind.ExpressionStatement:
                     return RewriteExpressionStatement((BoundExpressionStatement)node);
                 default:
@@ -39,7 +45,7 @@ namespace Minsk.CodeAnalysis.Binding
                     if (builder == null)
                     {
                         builder = ImmutableArray.CreateBuilder<BoundStatement>(node.Statements.Length);
-
+                        
                         for (var j = 0; j < i; j++)
                             builder.Add(node.Statements[j]);
                     }                    
@@ -92,8 +98,27 @@ namespace Minsk.CodeAnalysis.Binding
             var body = RewriteStatement(node.Body);
             if (lowerBound == node.LowerBound && upperBound == node.UpperBound && body == node.Body)
                 return node;
-
+            
             return new BoundForStatement(node.Variable, lowerBound, upperBound, body);
+        }
+
+        protected virtual BoundStatement RewriteLabelStatement(BoundLabelStatement node)
+        {
+            return node;
+        }
+
+        protected virtual BoundStatement RewriteGotoStatement(BoundGotoStatement node)
+        {
+            return node;
+        }
+
+        protected virtual BoundStatement RewriteConditionalGotoStatement(BoundConditionalGotoStatement node)
+        {
+            var condition = RewriteExpression(node.Condition);
+            if (condition == node.Condition)
+                return node;
+
+            return new BoundConditionalGotoStatement(node.Label, condition, node.JumpIfFalse);
         }
 
         protected virtual BoundStatement RewriteExpressionStatement(BoundExpressionStatement node)
@@ -101,7 +126,7 @@ namespace Minsk.CodeAnalysis.Binding
             var expression = RewriteExpression(node.Expression);
             if (expression == node.Expression)
                 return node;
-
+            
             return new BoundExpressionStatement(expression);
         }
 
@@ -123,7 +148,7 @@ namespace Minsk.CodeAnalysis.Binding
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
         }
-
+        
         protected virtual BoundExpression RewriteLiteralExpression(BoundLiteralExpression node)
         {
             return node;
@@ -139,7 +164,7 @@ namespace Minsk.CodeAnalysis.Binding
             var expression = RewriteExpression(node.Expression);
             if (expression == node.Expression)
                 return node;
-
+            
             return new BoundAssignmentExpression(node.Variable, expression);
         }
 
@@ -148,7 +173,7 @@ namespace Minsk.CodeAnalysis.Binding
             var operand = RewriteExpression(node.Operand);
             if (operand == node.Operand)
                 return node;
-
+            
             return new BoundUnaryExpression(node.Op, operand);
         }
 
@@ -158,7 +183,7 @@ namespace Minsk.CodeAnalysis.Binding
             var right = RewriteExpression(node.Right);
             if (left == node.Left && right == node.Right)
                 return node;
-
+            
             return new BoundBinaryExpression(left, node.Op, right);
         }
     }

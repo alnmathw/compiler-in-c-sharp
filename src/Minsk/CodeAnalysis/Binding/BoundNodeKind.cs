@@ -5,14 +5,17 @@ namespace Minsk.CodeAnalysis.Binding
         // Statements
         BlockStatement,
         VariableDeclaration,
+        IfStatement,
+        WhileStatement,
+        ForStatement,
+        LabelStatement,
+        GotoStatement,
+        ConditionalGotoStatement,
         ExpressionStatement,
 
         // Expressions
         LiteralExpression,
         VariableExpression,
-        IfStatement,
-        WhileStatement,
-        ForStatement,
         AssignmentExpression,
         UnaryExpression,
         BinaryExpression,
