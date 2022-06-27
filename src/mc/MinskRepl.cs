@@ -65,9 +65,10 @@ namespace Minsk
 
             var syntaxTree = SyntaxTree.Parse(text);
 
-            if (syntaxTree.Diagnostics.Any())
+            // Use Statement because we need to exclude the EndOfFileToken.
+            if (syntaxTree.Root.Statement.GetLastToken().IsMissing)
                 return false;
-
+            
             return true;
         }
 
