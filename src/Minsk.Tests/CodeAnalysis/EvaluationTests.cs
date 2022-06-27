@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Minsk.CodeAnalysis;
+using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 using Xunit;
-using Minsk.CodeAnalysis.Symbols;
 
 namespace Minsk.Tests.CodeAnalysis
 {
@@ -71,6 +71,7 @@ namespace Minsk.Tests.CodeAnalysis
         [InlineData("{ var a = 0 if a == 4 a = 10 else a = 5 a }", 5)]
         [InlineData("{ var i = 10 var result = 0 while i > 0 { result = result + i i = i - 1} result }", 55)]
         [InlineData("{ var result = 0 for i = 1 to 10 { result = result + i } result }", 55)]
+        [InlineData("{ var a = 10 for i = 1 to (a = a - 1) { } a }", 9)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -125,7 +126,7 @@ namespace Minsk.Tests.CodeAnalysis
             ";
 
             var diagnostics = @"
-                Cannot convert type 'System.Int32' to 'System.Boolean'.
+                Cannot convert type 'int' to 'bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -143,7 +144,7 @@ namespace Minsk.Tests.CodeAnalysis
             ";
 
             var diagnostics = @"
-                Cannot convert type 'System.Int32' to 'System.Boolean'.
+                Cannot convert type 'int' to 'bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -161,7 +162,7 @@ namespace Minsk.Tests.CodeAnalysis
             ";
 
             var diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'bool' to 'int'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -179,7 +180,7 @@ namespace Minsk.Tests.CodeAnalysis
             ";
 
             var diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'bool' to 'int'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -215,7 +216,7 @@ namespace Minsk.Tests.CodeAnalysis
             var text = @"[+]true";
 
             var diagnostics = @"
-                Unary operator '+' is not defined for type 'System.Boolean'.
+                Unary operator '+' is not defined for type 'bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -227,7 +228,7 @@ namespace Minsk.Tests.CodeAnalysis
             var text = @"10 [*] false";
 
             var diagnostics = @"
-                Binary operator '*' is not defined for types 'System.Int32' and 'System.Boolean'.
+                Binary operator '*' is not defined for types 'int' and 'bool'.
             ";
 
             AssertDiagnostics(text, diagnostics);
@@ -273,7 +274,7 @@ namespace Minsk.Tests.CodeAnalysis
             ";
 
             var diagnostics = @"
-                Cannot convert type 'System.Boolean' to 'System.Int32'.
+                Cannot convert type 'bool' to 'int'.
             ";
 
             AssertDiagnostics(text, diagnostics);
