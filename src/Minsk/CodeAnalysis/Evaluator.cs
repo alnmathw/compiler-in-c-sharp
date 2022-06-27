@@ -19,7 +19,7 @@ namespace Minsk.CodeAnalysis
 
         public object Evaluate()
         {
-            var labelToIndex = new Dictionary<LabelSymbol, int>();
+            var labelToIndex = new Dictionary<BoundLabel, int>();
 
             for (var i = 0; i < _root.Statements.Length; i++)
             {
@@ -50,8 +50,7 @@ namespace Minsk.CodeAnalysis
                     case BoundNodeKind.ConditionalGotoStatement:
                         var cgs = (BoundConditionalGotoStatement)s;
                         var condition = (bool)EvaluateExpression(cgs.Condition);
-                        if (condition && !cgs.JumpIfFalse ||
-                            !condition && cgs.JumpIfFalse)
+                        if (condition == cgs.JumpIfTrue)
                             index = labelToIndex[cgs.Label];
                         else
                             index++;

@@ -1,8 +1,8 @@
-namespace Minsk.CodeAnalysis
+namespace Minsk.CodeAnalysis.Binding
 {
-    internal sealed class LabelSymbol
+    internal sealed class BoundLabel
     {
-        internal LabelSymbol(string name)
+        internal BoundLabel(string name)
         {
             Name = name;
         }
@@ -11,4 +11,4 @@ namespace Minsk.CodeAnalysis
 
         public override string ToString() => Name;
     }
-} 
+}
