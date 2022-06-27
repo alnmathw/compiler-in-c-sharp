@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 namespace Minsk.CodeAnalysis.Binding
 {
     internal abstract class BoundTreeRewriter
-    {        
+    {
         public virtual BoundStatement RewriteStatement(BoundStatement node)
         {
             switch (node.Kind)
@@ -45,10 +45,10 @@ namespace Minsk.CodeAnalysis.Binding
                     if (builder == null)
                     {
                         builder = ImmutableArray.CreateBuilder<BoundStatement>(node.Statements.Length);
-                        
+
                         for (var j = 0; j < i; j++)
                             builder.Add(node.Statements[j]);
-                    }                    
+                    }
                 }
 
                 if (builder != null)
@@ -98,7 +98,7 @@ namespace Minsk.CodeAnalysis.Binding
             var body = RewriteStatement(node.Body);
             if (lowerBound == node.LowerBound && upperBound == node.UpperBound && body == node.Body)
                 return node;
-            
+
             return new BoundForStatement(node.Variable, lowerBound, upperBound, body);
         }
 
@@ -126,7 +126,7 @@ namespace Minsk.CodeAnalysis.Binding
             var expression = RewriteExpression(node.Expression);
             if (expression == node.Expression)
                 return node;
-            
+
             return new BoundExpressionStatement(expression);
         }
 
@@ -146,6 +146,8 @@ namespace Minsk.CodeAnalysis.Binding
                     return RewriteUnaryExpression((BoundUnaryExpression)node);
                 case BoundNodeKind.BinaryExpression:
                     return RewriteBinaryExpression((BoundBinaryExpression)node);
+                case BoundNodeKind.CallExpression:
+                    return RewriteCallExpression((BoundCallExpression)node);
                 default:
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
@@ -171,7 +173,7 @@ namespace Minsk.CodeAnalysis.Binding
             var expression = RewriteExpression(node.Expression);
             if (expression == node.Expression)
                 return node;
-            
+
             return new BoundAssignmentExpression(node.Variable, expression);
         }
 
@@ -180,7 +182,7 @@ namespace Minsk.CodeAnalysis.Binding
             var operand = RewriteExpression(node.Operand);
             if (operand == node.Operand)
                 return node;
-            
+
             return new BoundUnaryExpression(node.Op, operand);
         }
 
@@ -190,8 +192,37 @@ namespace Minsk.CodeAnalysis.Binding
             var right = RewriteExpression(node.Right);
             if (left == node.Left && right == node.Right)
                 return node;
-            
+
             return new BoundBinaryExpression(left, node.Op, right);
+        }
+
+        protected virtual BoundExpression RewriteCallExpression(BoundCallExpression node)
+        {
+            ImmutableArray<BoundExpression>.Builder builder = null;
+
+            for (var i = 0; i< node.Arguments.Length; i++)
+            {
+                var oldArgument = node.Arguments[i];
+                var newArgument = RewriteExpression(oldArgument);
+                if (newArgument != oldArgument)
+                {
+                    if (builder == null)
+                    {
+                        builder = ImmutableArray.CreateBuilder<BoundExpression>(node.Arguments.Length);
+
+                        for (var j = 0; j < i; j++)
+                            builder.Add(node.Arguments[j]);
+                    }
+                }
+
+                if (builder != null)
+                    builder.Add(newArgument);
+            }
+
+            if (builder == null)
+                return node;
+
+            return new BoundCallExpression(node.Function, builder.MoveToImmutable());
         }
     }
 }
