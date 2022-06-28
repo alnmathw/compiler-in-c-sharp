@@ -72,6 +72,7 @@ namespace Minsk.Tests.CodeAnalysis
         [InlineData("{ var i = 10 var result = 0 while i > 0 { result = result + i i = i - 1} result }", 55)]
         [InlineData("{ var result = 0 for i = 1 to 10 { result = result + i } result }", 55)]
         [InlineData("{ var a = 10 for i = 1 to (a = a - 1) { } a }", 9)]
+        [InlineData("{ var a = 0 do a = a + 1 while a < 10 a}", 10)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -115,6 +116,43 @@ namespace Minsk.Tests.CodeAnalysis
         }
 
         [Fact]
+        public void Evaluator_InvokeFunctionArguments_NoInfiniteLoop()
+        {
+            var text = @"
+                print(""Hi""[[=]][)]
+            ";
+
+            var diagnostics = @"
+                Unexpected token <EqualsToken>, expected <CloseParenthesisToken>.
+                Unexpected token <EqualsToken>, expected <IdentifierToken>.
+                Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_FunctionParameters_NoInfiniteLoop()
+        {
+            var text = @"
+                function hi(name: string[[[=]]][)]
+                {
+                    print(""Hi "" + name + ""!"" )
+                }[]
+            ";
+
+            var diagnostics = @"
+                Unexpected token <EqualsToken>, expected <CloseParenthesisToken>.
+                Unexpected token <EqualsToken>, expected <OpenBraceToken>.
+                Unexpected token <EqualsToken>, expected <IdentifierToken>.
+                Unexpected token <CloseParenthesisToken>, expected <IdentifierToken>.
+                Unexpected token <EndOfFileToken>, expected <CloseBraceToken>.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
         public void Evaluator_IfStatement_Reports_CannotConvert()
         {
             var text = @"
@@ -140,6 +178,25 @@ namespace Minsk.Tests.CodeAnalysis
                     var x = 0
                     while [10]
                         x = 10
+                }
+            ";
+
+            var diagnostics = @"
+                Cannot convert type 'int' to 'bool'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_DoWhileStatement_Reports_CannotConvert()
+        {
+            var text = @"
+                {
+                    var x = 0
+                    do
+                        x = 10
+                    while [10]
                 }
             ";
 
@@ -201,7 +258,7 @@ namespace Minsk.Tests.CodeAnalysis
         [Fact]
         public void Evaluator_NameExpression_Reports_NoErrorForInsertedToken()
         {
-            var text = @"[]";
+            var text = @"1 + []";
 
             var diagnostics = @"
                 Unexpected token <EndOfFileToken>, expected <IdentifierToken>.
