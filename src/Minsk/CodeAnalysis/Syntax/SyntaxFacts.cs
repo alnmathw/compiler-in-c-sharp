@@ -76,6 +76,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return SyntaxKind.VarKeyword;
                 case "while":
                     return SyntaxKind.WhileKeyword;
+                case "do":
+                    return SyntaxKind.DoKeyword;
                 default:
                     return SyntaxKind.IdentifierToken;
             }
@@ -149,6 +151,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return "{";
                 case SyntaxKind.CloseBraceToken:
                     return "}";
+                case SyntaxKind.CommaToken:
+                    return ",";
                 case SyntaxKind.ElseKeyword:
                     return "else";
                 case SyntaxKind.FalseKeyword:
@@ -167,6 +171,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return "var";
                 case SyntaxKind.WhileKeyword:
                     return "while";
+                case SyntaxKind.DoKeyword:
+                    return "do";
                 default:
                     return null;
             }

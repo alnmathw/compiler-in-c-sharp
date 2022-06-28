@@ -30,6 +30,7 @@ namespace Minsk.CodeAnalysis.Syntax
         CloseParenthesisToken,
         OpenBraceToken,
         CloseBraceToken,
+        CommaToken,
         IdentifierToken,
 
         // Keywords
@@ -42,6 +43,7 @@ namespace Minsk.CodeAnalysis.Syntax
         TrueKeyword,
         VarKeyword,
         WhileKeyword,
+        DoKeyword,
 
         // Nodes
         CompilationUnit,
@@ -52,6 +54,7 @@ namespace Minsk.CodeAnalysis.Syntax
         VariableDeclaration,
         IfStatement,
         WhileStatement,
+        DoWhileStatement,
         ForStatement,
         ExpressionStatement,
 
@@ -62,5 +65,6 @@ namespace Minsk.CodeAnalysis.Syntax
         BinaryExpression,
         ParenthesizedExpression,
         AssignmentExpression,
+        CallExpression,
     }
 }
