@@ -307,16 +307,16 @@ namespace Minsk.CodeAnalysis.Binding
                 return new BoundErrorExpression();
             }
 
-            if (syntax.Arguments.Count != function.Parameters.Length)
+            if (syntax.Arguments.Count != function.Parameter.Length)
             {
-                _diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameters.Length, syntax.Arguments.Count);
+                _diagnostics.ReportWrongArgumentCount(syntax.Span, function.Name, function.Parameter.Length, syntax.Arguments.Count);
                 return new BoundErrorExpression();
             }
 
             for (var i = 0; i < syntax.Arguments.Count; i++)
             {
                 var argument = boundArguments[i];
-                var parameter = function.Parameters[i];
+                var parameter = function.Parameter[i];
 
                 if (argument.Type != parameter.Type)
                 {
@@ -348,7 +348,7 @@ namespace Minsk.CodeAnalysis.Binding
             var variable = new VariableSymbol(name, isReadOnly, type);
 
             if (declare && !_scope.TryDeclareVariable(variable))
-                _diagnostics.ReportVariableAlreadyDeclared(identifier.Span, name);
+                _diagnostics.ReportSymbolAlreadyDeclared(identifier.Span, name);
 
             return variable;
         }
