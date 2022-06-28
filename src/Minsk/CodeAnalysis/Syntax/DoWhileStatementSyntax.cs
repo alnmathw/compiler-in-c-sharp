@@ -2,7 +2,8 @@ namespace Minsk.CodeAnalysis.Syntax
 {
 	public sealed class DoWhileStatementSyntax : StatementSyntax
     {
-        public DoWhileStatementSyntax(SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword, ExpressionSyntax condition)
+        public DoWhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword, ExpressionSyntax condition)
+            : base(syntaxTree)
         {
             DoKeyword = doKeyword;
             Body = body;
@@ -16,4 +17,4 @@ namespace Minsk.CodeAnalysis.Syntax
         public SyntaxToken WhileKeyword { get; }
         public ExpressionSyntax Condition { get; }
     }
-} 
+}

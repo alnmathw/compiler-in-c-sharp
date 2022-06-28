@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-
 namespace Minsk.CodeAnalysis.Syntax
 {
     public sealed class UnaryExpressionSyntax : ExpressionSyntax
     {
-        public UnaryExpressionSyntax(SyntaxToken operatorToken, ExpressionSyntax operand)
+        public UnaryExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken operatorToken, ExpressionSyntax operand)
+            : base(syntaxTree)
         {
             OperatorToken = operatorToken;
             Operand = operand;

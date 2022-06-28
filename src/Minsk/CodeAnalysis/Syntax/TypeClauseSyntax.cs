@@ -2,7 +2,8 @@ namespace Minsk.CodeAnalysis.Syntax
 {
     public sealed class TypeClauseSyntax : SyntaxNode
     {
-        public TypeClauseSyntax(SyntaxToken colonToken, SyntaxToken identifier)
+        public TypeClauseSyntax(SyntaxTree syntaxTree, SyntaxToken colonToken, SyntaxToken identifier)
+            : base(syntaxTree)
         {
             ColonToken = colonToken;
             Identifier = identifier;
@@ -12,4 +13,4 @@ namespace Minsk.CodeAnalysis.Syntax
         public SyntaxToken ColonToken { get; }
         public SyntaxToken Identifier { get; }
     }
-} 
+}
