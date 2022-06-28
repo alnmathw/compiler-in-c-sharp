@@ -69,9 +69,15 @@ namespace Minsk.CodeAnalysis
             Report(span, message);
         }
 
-        public void ReportUndefinedName(TextSpan span, string name)
+        public void ReportUndefinedVariable(TextSpan span, string name)
         {
             var message = $"Variable '{name}' doesn't exist.";
+            Report(span, message);
+        }
+        
+        public void ReportNotAVariable(TextSpan span, string name)
+        {
+            var message = $"'{name}' is not a variable.";
             Report(span, message);
         }
 
@@ -110,6 +116,12 @@ namespace Minsk.CodeAnalysis
             var message = $"Function '{name}' doesn't exist.";
             Report(span, message);
         }
+        
+        public void ReportNotAFunction(TextSpan span, string name)
+        {
+            var message = $"'{name}' is not a function.";
+            Report(span, message);
+        }
 
         public void ReportWrongArgumentCount(TextSpan span, string name, int expectedCount, int actualCount)
         {
@@ -135,9 +147,27 @@ namespace Minsk.CodeAnalysis
             Report(span, message);
         }
 
-        public void XXX_ReportFunctionsAreUnsupported(TextSpan span)
+        public void ReportAllPathsMustReturn(TextSpan span)
         {
-            var message = "Functions with return values are unsupported.";
+            var message = "Not all code paths return a value.";
+            Report(span, message);
+        }
+
+        public void ReportInvalidReturn(TextSpan span)
+        {
+            var message = "The 'return' keyword can only be used inside of functions.";
+            Report(span, message);
+        }
+
+        public void ReportInvalidReturnExpression(TextSpan span, string functionName)
+        {
+            var message = $"Since the function '{functionName}' does not return a value the 'return' keyword cannot be followed by an expression.";
+            Report(span, message);
+        }
+
+        public void ReportMissingReturnExpression(TextSpan span, TypeSymbol returnType)
+        {
+            var message = $"An expression of type '{returnType}' expected.";
             Report(span, message);
         }
     }
