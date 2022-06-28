@@ -12,7 +12,7 @@ namespace Minsk.CodeAnalysis.Lowering
         private int _labelCount;
 
         private Lowerer()
-        {            
+        {
         }
 
         private BoundLabel GenerateLabel()
@@ -62,7 +62,7 @@ namespace Minsk.CodeAnalysis.Lowering
                 // ---->
                 //
                 // gotoFalse <condition> end
-                // <then>  
+                // <then>
                 // end:
                 var endLabel = GenerateLabel();
                 var gotoFalse = new BoundConditionalGotoStatement(endLabel, node.Condition, false);
@@ -119,7 +119,7 @@ namespace Minsk.CodeAnalysis.Lowering
             // gotoTrue <condition> continue
             // end:
             //
-                
+
             var continueLabel = GenerateLabel();
             var checkLabel = GenerateLabel();
             var endLabel = GenerateLabel();
@@ -142,6 +142,44 @@ namespace Minsk.CodeAnalysis.Lowering
             return RewriteStatement(result);
         }
 
+        protected override BoundStatement RewriteDoWhileStatement(BoundDoWhileStatement node)
+        {
+            // do
+            //      <bode>
+            // while <condition>
+            //
+            // ----->
+            //
+            // continue:
+            // <body>
+            // goto check
+            // check:
+            // gotoTrue <condition> continue
+            // end:
+            //
+
+            var continueLabel = GenerateLabel();
+            var checkLabel = GenerateLabel();
+            var endLabel = GenerateLabel();
+
+            var continueLabelStatement = new BoundLabelStatement(continueLabel);
+            var gotoCheck = new BoundGotoStatement(checkLabel);
+            var checkLabelStatement = new BoundLabelStatement(checkLabel);
+            var gotoTrue = new BoundConditionalGotoStatement(continueLabel, node.Condition);
+            var endLabelStatement = new BoundLabelStatement(endLabel);
+
+            var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
+                continueLabelStatement,
+                node.Body,
+                gotoCheck,
+                checkLabelStatement,
+                gotoTrue,
+                endLabelStatement
+            ));
+
+            return RewriteStatement(result);
+        }
+
         protected override BoundStatement RewriteForStatement(BoundForStatement node)
         {
             // for <var> = <lower> to <upper>
@@ -156,7 +194,7 @@ namespace Minsk.CodeAnalysis.Lowering
             //      {
             //          <body>
             //          <var> = <var> + 1
-            //      }   
+            //      }
             // }
 
             var variableDeclaration = new BoundVariableDeclaration(node.Variable, node.LowerBound);
