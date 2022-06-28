@@ -1,8 +1,8 @@
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 
@@ -50,10 +50,9 @@ namespace Minsk.CodeAnalysis.Binding
                     return "<End>";
 
                 using (var writer = new StringWriter())
-                using (var indentedWriter = new IndentedTextWriter(writer))
                 {
                     foreach (var statement in Statements)
-                        statement.WriteTo(indentedWriter);
+                        statement.WriteTo(writer);
 
                     return writer.ToString();
                 }
@@ -266,7 +265,7 @@ namespace Minsk.CodeAnalysis.Binding
         {
             string Quote(string text)
             {
-                return "\"" + text.TrimEnd().Replace("\\", "\\\\").Replace("\"", "\\\"").Replace(Environment.NewLine, "\\l") + "\"";
+                return "\"" + text.Replace("\"", "\\\"") + "\"";
             }
 
             writer.WriteLine("digraph G {");
@@ -282,8 +281,8 @@ namespace Minsk.CodeAnalysis.Binding
             foreach (var block in Blocks)
             {
                 var id = blockIds[block];
-                var label = Quote(block.ToString());
-                writer.WriteLine($"    {id} [label = {label}, shape = box]");
+                var label = Quote(block.ToString().Replace(Environment.NewLine, "\\l"));
+                writer.WriteLine($"    {id} [label = {label} shape = box]");
             }
 
             foreach (var branch in Branches)
@@ -312,8 +311,8 @@ namespace Minsk.CodeAnalysis.Binding
 
             foreach (var branch in graph.End.Incoming)
             {
-                var lastStatement = branch.From.Statements.Last();
-                if (lastStatement.Kind != BoundNodeKind.ReturnStatement)
+                var lastStatement = branch.From.Statements.LastOrDefault();
+                if (lastStatement == null || lastStatement.Kind != BoundNodeKind.ReturnStatement)
                     return false;
             }
 
