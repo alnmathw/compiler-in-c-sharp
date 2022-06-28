@@ -2,7 +2,7 @@
   "version": 2,
   "dgSpecHash": "AwNGyi1cnNiUFXOf0Ecro7/saCgYxG3AOynBdMmXJvYRPYXErxbONgcwycE8nr/8MFdaqcbnRGv6teB85m1P6Q==",
   "success": true,
-  "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mc/mc.csproj",
+  "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mi/mi.csproj",
   "expectedPackageFiles": [
     "/home/alnmathw/.nuget/packages/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
     "/home/alnmathw/.nuget/packages/system.memory/4.5.4/system.memory.4.5.4.nupkg.sha512",
