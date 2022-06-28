@@ -82,8 +82,8 @@ namespace Minsk
 
             var syntaxTree = SyntaxTree.Parse(text);
 
-            // Use Statement because we need to exclude the EndOfFileToken.
-            if (syntaxTree.Root.Statement.GetLastToken().IsMissing)
+            // Use Members because we need to exclude the EndOfFileToken.
+            if (syntaxTree.Root.Members.Last().GetLastToken().IsMissing)
                 return false;
 
             return true;
@@ -117,7 +117,7 @@ namespace Minsk
             }
             else
             {
-                foreach (var diagnostic in result.Diagnostics.OrderBy(diag => diag.Span, new TextSpanComparer()))
+                foreach (var diagnostic in result.Diagnostics)
                 {
                     var lineIndex = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
                     var line = syntaxTree.Text.Lines[lineIndex];

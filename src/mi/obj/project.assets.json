@@ -143,11 +143,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mc/mc.csproj",
-      "projectName": "mc",
-      "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mc/mc.csproj",
+      "projectUniqueName": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mi/mi.csproj",
+      "projectName": "mi",
+      "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mi/mi.csproj",
       "packagesPath": "/home/alnmathw/.nuget/packages/",
-      "outputPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mc/obj/",
+      "outputPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mi/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/alnmathw/.nuget/NuGet/NuGet.Config"

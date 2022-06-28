@@ -145,7 +145,7 @@ namespace Minsk
             view.CurrentCharacter = document[view.CurrentLine].Length;
             Console.WriteLine();
 
-            return string.Join(Environment.NewLine, document);       
+            return string.Join(Environment.NewLine, document);
         }
 
         private void HandleKey(ConsoleKeyInfo key, ObservableCollection<string> document, SubmissionView view)
@@ -211,8 +211,9 @@ namespace Minsk
 
         private void HandleEscape(ObservableCollection<string> document, SubmissionView view)
         {
-            document[view.CurrentLine] = string.Empty;
-            view.CurrentCharacter = 0;
+            document.Clear();
+            document.Add(string.Empty);
+            view.CurrentLine = 0;
         }
 
         private void HandleEnter(ObservableCollection<string> document, SubmissionView view)
@@ -282,14 +283,13 @@ namespace Minsk
                 view.CurrentLine--;
                 document[view.CurrentLine] = previousLine + currentLine;
                 view.CurrentCharacter = previousLine.Length;
-                return;
             }
             else
             {
                 var lineIndex = view.CurrentLine;
                 var line = document[lineIndex];
                 var before = line.Substring(0, start - 1);
-                var after = line.Substring(start);            
+                var after = line.Substring(start);
                 document[lineIndex] = before + after;
                 view.CurrentCharacter--;
             }
@@ -301,10 +301,20 @@ namespace Minsk
             var line = document[lineIndex];
             var start = view.CurrentCharacter;
             if (start >= line.Length)
+            {
+                if (view.CurrentLine == document.Count - 1)
+                {
+                    return;
+                }
+
+                var nextLine = document[view.CurrentLine + 1];
+                document[view.CurrentLine] += nextLine;
+                document.RemoveAt(view.CurrentLine + 1);
                 return;
+            }
 
             var before = line.Substring(0, start);
-            var after = line.Substring(start + 1);            
+            var after = line.Substring(start + 1);
             document[lineIndex] = before + after;
         }
 
@@ -346,6 +356,9 @@ namespace Minsk
 
         private void UpdateDocumentFromHistory(ObservableCollection<string> document, SubmissionView view)
         {
+            if (_submissionHistory.Count == 0)
+                return;
+
             document.Clear();
 
             var historyItem = _submissionHistory[_submissionHistoryIndex];
