@@ -31,7 +31,7 @@ namespace Minsk
                                                BindingFlags.FlattenHierarchy);
             foreach (var method in methods)
             {
-                var attribute = (MetaCommandAttribute)method.GetCustomAttribute(typeof(MetaCommandAttribute));
+                var attribute = method.GetCustomAttribute<MetaCommandAttribute>();
                 if (attribute == null)
                     continue;
 
@@ -62,7 +62,7 @@ namespace Minsk
         {
             private readonly Action<string> _lineRenderer;
             private readonly ObservableCollection<string> _submissionDocument;
-            private readonly int _cursorTop;
+            private int _cursorTop;
             private int _renderedLineCount;
             private int _currentLine;
             private int _currentCharacter;
@@ -89,6 +89,14 @@ namespace Minsk
 
                 foreach (var line in _submissionDocument)
                 {
+                    if (_cursorTop + lineCount >= Console.WindowHeight)
+                    {
+                        Console.SetCursorPosition(0, Console.WindowHeight - 1);
+                        Console.WriteLine();
+                        if (_cursorTop > 0)
+                            _cursorTop--;
+                    }
+
                     Console.SetCursorPosition(0, _cursorTop + lineCount);
                     Console.ForegroundColor = ConsoleColor.Green;
 
@@ -99,7 +107,7 @@ namespace Minsk
 
                     Console.ResetColor();
                     _lineRenderer(line);
-                    Console.WriteLine(new string(' ', Console.WindowWidth - line.Length));
+                    Console.Write(new string(' ', Console.WindowWidth - line.Length - 2));
                     lineCount++;
                 }
 
@@ -483,7 +491,7 @@ namespace Minsk
 
             if (args.Count != parameters.Length)
             {
-                var parameterNames = string.Join(", ", parameters.Select(p => $"<{p.Name}>"));
+                var parameterNames = string.Join(" ", parameters.Select(p => $"<{p.Name}>"));
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"error: invalid number of arguments");
                 Console.WriteLine($"usage: #{command.Name} {parameterNames}");
@@ -491,7 +499,8 @@ namespace Minsk
                 return;
             }
 
-            command.Method.Invoke(this, args.ToArray());
+            var instance = command.Method.IsStatic ? null : this;
+            command.Method.Invoke(instance, args.ToArray());
         }
 
         protected abstract bool IsCompleteSubmission(string text);
