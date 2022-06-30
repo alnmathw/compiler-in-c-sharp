@@ -11,9 +11,8 @@ namespace Minsk
 {
     internal sealed class MinskRepl : Repl
     {
-        private static bool _loadingSubmission;
+        private bool _loadingSubmission;
         private static readonly Compilation emptyCompilation = new Compilation();
-
         private Compilation _previous;
         private bool _showTree;
         private bool _showProgram;
@@ -214,10 +213,12 @@ namespace Minsk
 
         private static void ClearSubmissions()
         {
-            Directory.Delete(GetSubmissionsDirectory(), recursive: true);
+            var dir = GetSubmissionsDirectory();
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
         }
 
-        private static void SaveSubmission(string text)
+        private void SaveSubmission(string text)
         {
             if (_loadingSubmission)
                 return;
