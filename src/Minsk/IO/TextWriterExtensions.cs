@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Minsk.CodeAnalysis;
@@ -39,7 +40,10 @@ namespace Minsk.IO
 
         public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
         {
-            writer.WriteKeyword(SyntaxFacts.GetText(kind));
+            var text = SyntaxFacts.GetText(kind);
+            Debug.Assert(kind.IsKeyword() && text != null);
+
+            writer.WriteKeyword(text);
         }
 
         public static void WriteKeyword(this TextWriter writer, string text)
@@ -77,7 +81,10 @@ namespace Minsk.IO
 
         public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
         {
-            writer.WritePunctuation(SyntaxFacts.GetText(kind));
+            var text = SyntaxFacts.GetText(kind);
+            Debug.Assert(text != null);
+
+            writer.WritePunctuation(text);
         }
 
         public static void WritePunctuation(this TextWriter writer, string text)
@@ -91,7 +98,8 @@ namespace Minsk.IO
         {
             foreach (var diagnostic in diagnostics.Where(d => d.Location.Text == null))
             {
-                writer.SetForeground(ConsoleColor.DarkRed);
+                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
+                writer.SetForeground(messageColor);
                 writer.WriteLine(diagnostic.Message);
                 writer.ResetColor();
             }
@@ -114,7 +122,8 @@ namespace Minsk.IO
 
                 writer.WriteLine();
 
-                writer.SetForeground(ConsoleColor.DarkRed);
+                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
+                writer.SetForeground(messageColor);
                 writer.Write($"{fileName}({startLine},{startCharacter},{endLine},{endCharacter}): ");
                 writer.WriteLine(diagnostic);
                 writer.ResetColor();
