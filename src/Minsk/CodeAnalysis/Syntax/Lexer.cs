@@ -1,294 +1,246 @@
 using System;
-using System.Text;
-using Minsk.CodeAnalysis.Symbols;
+using System.Collections.Generic;
+using System.Linq;
+using Minsk.CodeAnalysis.Syntax;
 using Minsk.CodeAnalysis.Text;
+using Xunit;
 
-namespace Minsk.CodeAnalysis.Syntax
+namespace Minsk.Tests.CodeAnalysis.Syntax
 {
-    internal sealed class Lexer
+    public class LexerTests
     {
-        private readonly DiagnosticBag _diagnostics = new DiagnosticBag();
-        private readonly SyntaxTree _syntaxTree;
-        private readonly SourceText _text;
-        private int _position;
-
-        private int _start;
-        private SyntaxKind _kind;
-        private object _value;
-
-        public Lexer(SyntaxTree syntaxTree)
+        [Fact]
+        public void Lexer_Lexes_UnterminatedString()
         {
-            _syntaxTree = syntaxTree;
-            _text = syntaxTree.Text;
+            var text = "\"text";
+            var tokens = SyntaxTree.ParseTokens(text, out var diagnostics);
+
+            var token = Assert.Single(tokens);
+            Assert.Equal(SyntaxKind.StringToken, token.Kind);
+            Assert.Equal(text, token.Text);
+
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(new TextSpan(0, 1), diagnostic.Location.Span);
+            Assert.Equal("Unterminated string literal.", diagnostic.Message);
         }
 
-        public DiagnosticBag Diagnostics => _diagnostics;
-
-        private char Current => Peek(0);
-
-        private char Lookahead => Peek(1);
-
-        private char Peek(int offset)
+        [Fact]
+        public void Lexer_Covers_AllTokens()
         {
-            var index = _position + offset;
+            var tokenKinds = Enum.GetValues(typeof(SyntaxKind))
+                                 .Cast<SyntaxKind>()
+                                 .Where(k => k.IsToken());
 
-            if (index >= _text.Length)
-                return '\0';
+            var testedTokenKinds = GetTokens().Concat(GetSeparators()).Select(t => t.kind);
 
-            return _text[index];
+            var untestedTokenKinds = new SortedSet<SyntaxKind>(tokenKinds);
+            untestedTokenKinds.Remove(SyntaxKind.BadTokenTrivia);
+            untestedTokenKinds.Remove(SyntaxKind.EndOfFileToken);
+            untestedTokenKinds.ExceptWith(testedTokenKinds);
+
+            Assert.Empty(untestedTokenKinds);
         }
 
-        public SyntaxToken Lex()
+        [Theory]
+        [MemberData(nameof(GetTokensData))]
+        public void Lexer_Lexes_Token(SyntaxKind kind, string text)
         {
-            _start = _position;
-            _kind = SyntaxKind.BadToken;
-            _value = null;
+            var tokens = SyntaxTree.ParseTokens(text);
 
-            switch (Current)
+            var token = Assert.Single(tokens);
+            Assert.Equal(kind, token.Kind);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTokenPairsData))]
+        public void Lexer_Lexes_TokenPairs(SyntaxKind t1Kind, string t1Text,
+                                           SyntaxKind t2Kind, string t2Text)
+        {
+            var text = t1Text + t2Text;
+            var tokens = SyntaxTree.ParseTokens(text).ToArray();
+
+            Assert.Equal(2, tokens.Length);
+            Assert.Equal(t1Kind, tokens[0].Kind);
+            Assert.Equal(t1Text, tokens[0].Text);
+            Assert.Equal(t2Kind, tokens[1].Kind);
+            Assert.Equal(t2Text, tokens[1].Text);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTokenPairsWithSeparatorData))]
+        public void Lexer_Lexes_TokenPairs_WithSeparators(SyntaxKind t1Kind, string t1Text,
+                                                          SyntaxKind separatorKind, string separatorText,
+                                                          SyntaxKind t2Kind, string t2Text)
+        {
+            var text = t1Text + separatorText + t2Text;
+            var tokens = SyntaxTree.ParseTokens(text).ToArray();
+
+            Assert.Equal(3, tokens.Length);
+            Assert.Equal(t1Kind, tokens[0].Kind);
+            Assert.Equal(t1Text, tokens[0].Text);
+            Assert.Equal(separatorKind, tokens[1].Kind);
+            Assert.Equal(separatorText, tokens[1].Text);
+            Assert.Equal(t2Kind, tokens[2].Kind);
+            Assert.Equal(t2Text, tokens[2].Text);
+        }
+
+        public static IEnumerable<object[]> GetTokensData()
+        {
+            foreach (var t in GetTokens().Concat(GetSeparators()))
+                yield return new object[] { t.kind, t.text };
+        }
+
+        public static IEnumerable<object[]> GetTokenPairsData()
+        {
+            foreach (var t in GetTokenPairs())
+                yield return new object[] { t.t1Kind, t.t1Text, t.t2Kind, t.t2Text };
+        }
+
+        public static IEnumerable<object[]> GetTokenPairsWithSeparatorData()
+        {
+            foreach (var t in GetTokenPairsWithSeparator())
+                yield return new object[] { t.t1Kind, t.t1Text, t.separatorKind, t.separatorText, t.t2Kind, t.t2Text };
+        }
+
+        private static IEnumerable<(SyntaxKind kind, string text)> GetTokens()
+        {
+            var fixedTokens = Enum.GetValues(typeof(SyntaxKind))
+                                  .Cast<SyntaxKind>()
+                                  .Select(k => (kind: k, text: SyntaxFacts.GetText(k)))
+                                  .Where(t => t.text != null);
+
+
+            var dynamicTokens = new[]
             {
-                case '\0':
-                    _kind = SyntaxKind.EndOfFileToken;
-                    break;
-                case '+':
-                    _kind = SyntaxKind.PlusToken;
-                    _position++;
-                    break;
-                case '-':
-                    _kind = SyntaxKind.MinusToken;
-                    _position++;
-                    break;
-                case '*':
-                    _kind = SyntaxKind.StarToken;
-                    _position++;
-                    break;
-                case '/':
-                    _kind = SyntaxKind.SlashToken;
-                    _position++;
-                    break;
-                case '(':
-                    _kind = SyntaxKind.OpenParenthesisToken;
-                    _position++;
-                    break;
-                case ')':
-                    _kind = SyntaxKind.CloseParenthesisToken;
-                    _position++;
-                    break;
-                case '{':
-                    _kind = SyntaxKind.OpenBraceToken;
-                    _position++;
-                    break;
-                case '}':
-                    _kind = SyntaxKind.CloseBraceToken;
-                    _position++;
-                    break;
-                case ':':
-                    _kind = SyntaxKind.ColonToken;
-                    _position++;
-                    break;
-                case ',':
-                    _kind = SyntaxKind.CommaToken;
-                    _position++;
-                    break;
-                case '~':
-                    _kind = SyntaxKind.TildeToken;
-                    _position++;
-                    break;
-                case '^':
-                    _kind = SyntaxKind.HatToken;
-                    _position++;
-                    break;
-                case '&':
-                    _position++;
-                    if (Current != '&')
-                    {
-                        _kind = SyntaxKind.AmpersandToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.AmpersandAmpersandToken;
-                        _position++;
-                    }
-                    break;
-                case '|':
-                    _position++;
-                    if (Current != '|')
-                    {
-                        _kind = SyntaxKind.PipeToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.PipePipeToken;
-                        _position++;
-                    }
-                    break;
-                case '=':
-                    _position++;
-                    if (Current != '=')
-                    {
-                        _kind = SyntaxKind.EqualsToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.EqualsEqualsToken;
-                        _position++;
-                    }
-                    break;
-                case '!':
-                    _position++;
-                    if (Current != '=')
-                    {
-                        _kind = SyntaxKind.BangToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.BangEqualsToken;
-                        _position++;
-                    }
-                    break;
-                case '<':
-                    _position++;
-                    if (Current != '=')
-                    {
-                        _kind = SyntaxKind.LessToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.LessOrEqualsToken;
-                        _position++;
-                    }
-                    break;
-                case '>':
-                    _position++;
-                    if (Current != '=')
-                    {
-                        _kind = SyntaxKind.GreaterToken;
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.GreaterOrEqualsToken;
-                        _position++;
-                    }
-                    break;
-                case '"':
-                    ReadString();
-                    break;
-                case '0': case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7': case '8': case '9':
-                    ReadNumber();
-                    break;
-                case ' ':
-                case '\t':
-                case '\n':
-                case '\r':
-                    ReadWhiteSpace();
-                    break;
-                case '_':
-                    ReadIdentifierOrKeyword();
-                    break;
-                default:
-                    if (char.IsLetter(Current))
-                    {
-                        ReadIdentifierOrKeyword();
-                    }
-                    else if (char.IsWhiteSpace(Current))
-                    {
-                        ReadWhiteSpace();
-                    }
-                    else
-                    {
-                        var span = new TextSpan(_position, 1);
-                        var location = new TextLocation(_text, span);
-                        _diagnostics.ReportBadCharacter(location, Current);
-                        _position++;
-                    }
-                    break;
-            }
+                (SyntaxKind.NumberToken, "1"),
+                (SyntaxKind.NumberToken, "123"),
+                (SyntaxKind.IdentifierToken, "a"),
+                (SyntaxKind.IdentifierToken, "abc"),
+                (SyntaxKind.StringToken, "\"Test\""),
+                (SyntaxKind.StringToken, "\"Te\"\"st\""),
+            };
 
-            var length = _position - _start;
-            var text = SyntaxFacts.GetText(_kind);
-            if (text == null)
-                text = _text.ToString(_start, length);
-
-            return new SyntaxToken(_syntaxTree, _kind, _start, text, _value);
+            return fixedTokens.Concat(dynamicTokens);
         }
 
-        private void ReadString()
+        private static IEnumerable<(SyntaxKind kind, string text)> GetSeparators()
         {
-            // Skip the current quote
-            _position++;
-
-            var sb = new StringBuilder();
-            var done = false;
-
-            while (!done)
+            return new[]
             {
-                switch (Current)
+                (SyntaxKind.WhitespaceTrivia, " "),
+                (SyntaxKind.WhitespaceTrivia, "  "),
+                (SyntaxKind.WhitespaceTrivia, "\r"),
+                (SyntaxKind.WhitespaceTrivia, "\n"),
+                (SyntaxKind.WhitespaceTrivia, "\r\n"),
+                (SyntaxKind.MultiLineCommentTrivia, "/**/"),
+            };
+        }
+
+        private static bool RequiresSeparator(SyntaxKind t1Kind, SyntaxKind t2Kind)
+        {
+            var t1IsKeyword = t1Kind.IsKeyword();
+            var t2IsKeyword = t2Kind.IsKeyword();
+
+            if (t1Kind == SyntaxKind.IdentifierToken && t2Kind == SyntaxKind.IdentifierToken)
+                return true;
+
+            if (t1IsKeyword && t2IsKeyword)
+                return true;
+
+            if (t1IsKeyword && t2Kind == SyntaxKind.IdentifierToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.IdentifierToken && t2IsKeyword)
+                return true;
+
+            if (t1Kind == SyntaxKind.NumberToken && t2Kind == SyntaxKind.NumberToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.StringToken && t2Kind == SyntaxKind.StringToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.BangToken && t2Kind == SyntaxKind.EqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.BangToken && t2Kind == SyntaxKind.EqualsEqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.EqualsToken && t2Kind == SyntaxKind.EqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.EqualsToken && t2Kind == SyntaxKind.EqualsEqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.LessToken && t2Kind == SyntaxKind.EqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.LessToken && t2Kind == SyntaxKind.EqualsEqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.GreaterToken && t2Kind == SyntaxKind.EqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.GreaterToken && t2Kind == SyntaxKind.EqualsEqualsToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.AmpersandToken && t2Kind == SyntaxKind.AmpersandAmpersandToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipeToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.PipeToken && t2Kind == SyntaxKind.PipePipeToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.SlashToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.StarToken)
+                return true;
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.SingleLineCommentTrivia)
+                return true;
+
+            if (t1Kind == SyntaxKind.SlashToken && t2Kind == SyntaxKind.MultiLineCommentTrivia)
+                return true;
+
+            return false;
+        }
+
+        private static IEnumerable<(SyntaxKind t1Kind, string t1Text, SyntaxKind t2Kind, string t2Text)> GetTokenPairs()
+        {
+            foreach (var t1 in GetTokens())
+            {
+                foreach (var t2 in GetTokens())
                 {
-                    case '\0':
-                    case '\r':
-                    case '\n':
-                        var span = new TextSpan(_start, 1);
-                        var location = new TextLocation(_text, span);
-                        _diagnostics.ReportUnterminatedString(location);
-                        done = true;
-                        break;
-                    case '"':
-                        if (Lookahead == '"')
-                        {
-                            sb.Append(Current);
-                            _position += 2;
-                        }
-                        else
-                        {
-                            _position++;
-                            done = true;
-                        }
-                        break;
-                    default:
-                        sb.Append(Current);
-                        _position++;
-                        break;
+                    if (!RequiresSeparator(t1.kind, t2.kind))
+                        yield return (t1.kind, t1.text, t2.kind, t2.text);
                 }
             }
-
-            _kind = SyntaxKind.StringToken;
-            _value = sb.ToString();
         }
 
-        private void ReadWhiteSpace()
+        private static IEnumerable<(SyntaxKind t1Kind, string t1Text,
+                                    SyntaxKind separatorKind, string separatorText,
+                                    SyntaxKind t2Kind, string t2Text)> GetTokenPairsWithSeparator()
         {
-            while (char.IsWhiteSpace(Current))
-                _position++;
-
-            _kind = SyntaxKind.WhitespaceToken;
-        }
-
-        private void ReadNumber()
-        {
-            while (char.IsDigit(Current))
-                _position++;
-
-            var length = _position - _start;
-            var text = _text.ToString(_start, length);
-            if (!int.TryParse(text, out var value))
+            foreach (var t1 in GetTokens())
             {
-                var span = new TextSpan(_start, length);
-                var location = new TextLocation(_text, span);
-                _diagnostics.ReportInvalidNumber(location, text, TypeSymbol.Int);
+                foreach (var t2 in GetTokens())
+                {
+                    if (RequiresSeparator(t1.kind, t2.kind))
+                    {
+                        foreach (var s in GetSeparators())
+                        {
+                            if (!RequiresSeparator(t1.kind, s.kind) && !RequiresSeparator(s.kind, t2.kind))
+                                yield return (t1.kind, t1.text, s.kind, s.text, t2.kind, t2.text);
+                        }
+                    }
+                }
             }
-
-            _value = value;
-            _kind = SyntaxKind.NumberToken;
-        }
-
-        private void ReadIdentifierOrKeyword()
-        {
-            while (char.IsLetterOrDigit(Current) || Current == '_')
-                _position++;
-
-            var length = _position - _start;
-            var text = _text.ToString(_start, length);
-            _kind = SyntaxFacts.GetKeywordKind(text);
         }
     }
 }
