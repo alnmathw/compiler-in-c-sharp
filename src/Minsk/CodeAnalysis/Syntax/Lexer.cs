@@ -41,7 +41,7 @@ namespace Minsk.CodeAnalysis.Syntax
         public SyntaxToken Lex()
         {
             _start = _position;
-            _kind = SyntaxKind.BadTokenTrivia;
+            _kind = SyntaxKind.BadToken;
             _value = null;
 
             switch (Current)
@@ -62,19 +62,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     _position++;
                     break;
                 case '/':
-                    if (Lookahead == '/')
-                    {
-                        ReadSingleLineComment();
-                    }
-                    else if (Lookahead == '*')
-                    {
-                        ReadMultiLineComment();
-                    }
-                    else
-                    {
-                        _kind = SyntaxKind.SlashToken;
-                        _position++;
-                    }
+                    _kind = SyntaxKind.SlashToken;
+                    _position++;
                     break;
                 case '(':
                     _kind = SyntaxKind.OpenParenthesisToken;
@@ -193,6 +182,9 @@ namespace Minsk.CodeAnalysis.Syntax
                 case '\r':
                     ReadWhiteSpace();
                     break;
+                case '_':
+                    ReadIdentifierOrKeyword();
+                    break;
                 default:
                     if (char.IsLetter(Current))
                     {
@@ -218,61 +210,6 @@ namespace Minsk.CodeAnalysis.Syntax
                 text = _text.ToString(_start, length);
 
             return new SyntaxToken(_syntaxTree, _kind, _start, text, _value);
-        }
-
-        private void ReadSingleLineComment()
-        {
-            _position += 2;
-            var done = false;
-
-            while (!done)
-            {
-                switch (Current)
-                {
-                    case '\0':
-                    case '\r':
-                    case '\n':
-                        done = true;
-                        break;
-                    default:
-                        _position++;
-                        break;
-                }
-            }
-
-            _kind = SyntaxKind.SingleLineCommentTrivia;
-        }
-
-        private void ReadMultiLineComment()
-        {
-            _position += 2;
-            var done = false;
-
-            while (!done)
-            {
-                switch (Current)
-                {
-                    case '\0':
-                        var span = new TextSpan(_start, 2);
-                        var location = new TextLocation(_text, span);
-                        _diagnostics.ReportUnterminatedMultiLineComment(location);
-                        done = true;
-                        break;
-                    case '*':
-                        if (Lookahead == '/')
-                        {
-                            _position++;
-                            done = true;
-                        }
-                        _position++;
-                        break;
-                    default:
-                        _position++;
-                        break;
-                }
-            }
-
-            _kind = SyntaxKind.MultiLineCommentTriva;
         }
 
         private void ReadString()
@@ -323,7 +260,7 @@ namespace Minsk.CodeAnalysis.Syntax
             while (char.IsWhiteSpace(Current))
                 _position++;
 
-            _kind = SyntaxKind.WhitespaceTrivia;
+            _kind = SyntaxKind.WhitespaceToken;
         }
 
         private void ReadNumber()
@@ -346,7 +283,7 @@ namespace Minsk.CodeAnalysis.Syntax
 
         private void ReadIdentifierOrKeyword()
         {
-            while (char.IsLetter(Current))
+            while (char.IsLetterOrDigit(Current) || Current == '_')
                 _position++;
 
             var length = _position - _start;
