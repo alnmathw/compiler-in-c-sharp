@@ -1,77 +1,144 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Minsk.CodeAnalysis;
-using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
-using Minsk.IO;
+using Minsk.CodeAnalysis.Text;
 
-namespace Minsk
+namespace Minsk.IO
 {
-    internal static class Program
+    public static class TextWriterExtensions
     {
-        private static int Main(string[] args)
+        private static bool IsConsole(this TextWriter writer)
         {
-            if (args.Length == 0)
-            {
-                Console.Error.WriteLine("usage: mc <source-paths>");
-                return 1;
-            }
+            if (writer == Console.Out)
+                return !Console.IsOutputRedirected;
 
-            var paths = GetFilePaths(args);
-            var syntaxTrees = new List<SyntaxTree>();
-            var hasErrors = false;
+            if (writer == Console.Error)
+                return !Console.IsErrorRedirected && !Console.IsOutputRedirected; // Color codes are always output to Console.Out
 
-            foreach (var path in paths)
-            {
-                if (!File.Exists(path))
-                {
-                    Console.Error.WriteLine($"error: file '{path}' doesn't exist");
-                    hasErrors = true;
-                    continue;
-                }
-                var syntaxTree = SyntaxTree.Load(path);
-                syntaxTrees.Add(syntaxTree);
-            }
+            if (writer is IndentedTextWriter iw && iw.InnerWriter.IsConsole())
+                return true;
 
-            if (hasErrors)
-                return 1;
-
-            var compilation = Compilation.Create(syntaxTrees.ToArray());
-            var result = compilation.Evaluate(new Dictionary<VariableSymbol, object>());
-
-            if (!result.Diagnostics.Any())
-            {
-                if (result.Value != null)
-                    Console.WriteLine(result.Value);
-            }
-            else
-            {
-                Console.Error.WriteDiagnostics(result.Diagnostics);
-                return 1;
-            }
-
-            return 0;
+            return false;
         }
 
-        private static IEnumerable<string> GetFilePaths(IEnumerable<string> paths)
+        private static void SetForeground(this TextWriter writer, ConsoleColor color)
         {
-            var result = new SortedSet<string>();
+            if (writer.IsConsole())
+                Console.ForegroundColor = color;
+        }
 
-            foreach (var path in paths)
+        private static void ResetColor(this TextWriter writer)
+        {
+            if (writer.IsConsole())
+                Console.ResetColor();
+        }
+
+        public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
+        {
+            writer.WriteKeyword(SyntaxFacts.GetText(kind));
+        }
+
+        public static void WriteKeyword(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.Blue);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteIdentifier(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.DarkYellow);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteNumber(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.Cyan);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteString(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.Magenta);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteSpace(this TextWriter writer)
+        {
+            writer.WritePunctuation(" ");
+        }
+
+        public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
+        {
+            writer.WritePunctuation(SyntaxFacts.GetText(kind));
+        }
+
+        public static void WritePunctuation(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.DarkGray);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteDiagnostics(this TextWriter writer, IEnumerable<Diagnostic> diagnostics)
+        {
+            foreach (var diagnostic in diagnostics.Where(d => d.Location.Text == null))
             {
-                if (Directory.Exists(path))
-                {
-                    result.UnionWith(Directory.EnumerateFiles(path, "*.ms", SearchOption.AllDirectories));
-                }
-                else
-                {
-                    result.Add(path);
-                }
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.WriteLine(diagnostic.Message);
+                writer.ResetColor();
             }
 
-            return result;
+            foreach (var diagnostic in diagnostics.Where(d => d.Location.Text != null)
+                                                  .OrderBy(d => d.Location.FileName)
+                                                  .ThenBy(d => d.Location.Span.Start)
+                                                  .ThenBy(d => d.Location.Span.Length))
+            {
+                var text = diagnostic.Location.Text;
+                var fileName = diagnostic.Location.FileName;
+                var startLine = diagnostic.Location.StartLine + 1;
+                var startCharacter = diagnostic.Location.StartCharacter + 1;
+                var endLine = diagnostic.Location.EndLine + 1;
+                var endCharacter = diagnostic.Location.EndCharacter + 1;
+
+                var span = diagnostic.Location.Span;
+                var lineIndex = text.GetLineIndex(span.Start);
+                var line = text.Lines[lineIndex];
+
+                writer.WriteLine();
+
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.Write($"{fileName}({startLine},{startCharacter},{endLine},{endCharacter}): ");
+                writer.WriteLine(diagnostic);
+                writer.ResetColor();
+
+                var prefixSpan = TextSpan.FromBounds(line.Start, span.Start);
+                var suffixSpan = TextSpan.FromBounds(span.End, line.End);
+
+                var prefix = text.ToString(prefixSpan);
+                var error = text.ToString(span);
+                var suffix = text.ToString(suffixSpan);
+
+                writer.Write("    ");
+                writer.Write(prefix);
+
+                writer.SetForeground(ConsoleColor.DarkRed);
+                writer.Write(error);
+                writer.ResetColor();
+
+                writer.Write(suffix);
+
+                writer.WriteLine();
+            }
+
+            writer.WriteLine();
         }
     }
 }

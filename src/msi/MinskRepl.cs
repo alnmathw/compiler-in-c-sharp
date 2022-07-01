@@ -11,8 +11,7 @@ namespace Minsk
 {
     internal sealed class MinskRepl : Repl
     {
-        private bool _loadingSubmission;
-        private static readonly Compilation emptyCompilation = Compilation.CreateScript(null);
+        private static bool _loadingSubmission;
         private Compilation _previous;
         private bool _showTree;
         private bool _showProgram;
@@ -48,6 +47,12 @@ namespace Minsk
 
                 Console.ResetColor();
             }
+        }
+
+        [MetaCommand("exit", "Exits the REPL")]
+        private void EvaluateExit()
+        {
+            Environment.Exit(0);
         }
 
         [MetaCommand("cls", "Clears the screen")]
@@ -98,8 +103,10 @@ namespace Minsk
         [MetaCommand("ls", "Lists all symbols")]
         private void EvaluateLs()
         {
-            var compilation = _previous ?? emptyCompilation;
-            var symbols = compilation.GetSymbols().OrderBy(s => s.Kind).ThenBy(s => s.Name);
+            if (_previous == null)
+                return;
+
+            var symbols = _previous.GetSymbols().OrderBy(s => s.Kind).ThenBy(s => s.Name);
             foreach (var symbol in symbols)
             {
                 symbol.WriteTo(Console.Out);
@@ -110,8 +117,10 @@ namespace Minsk
         [MetaCommand("dump", "Shows bound tree of a given function")]
         private void EvaluateDump(string functionName)
         {
-            var compilation = _previous ?? emptyCompilation;
-            var symbol = compilation.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
+            if (_previous == null)
+                return;
+
+            var symbol = _previous.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
             if (symbol == null)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -120,7 +129,7 @@ namespace Minsk
                 return;
             }
 
-            compilation.EmitTree(symbol, Console.Out);
+            _previous.EmitTree(symbol, Console.Out);
         }
 
         protected override bool IsCompleteSubmission(string text)
@@ -148,7 +157,10 @@ namespace Minsk
         protected override void EvaluateSubmission(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);
-            var compilation = Compilation.CreateScript(_previous, syntaxTree);
+
+            var compilation = _previous == null
+                                ? new Compilation(syntaxTree)
+                                : _previous.ContinueWith(syntaxTree);
 
             if (_showTree)
                 syntaxTree.Root.WriteTo(Console.Out);
@@ -210,12 +222,10 @@ namespace Minsk
 
         private static void ClearSubmissions()
         {
-            var dir = GetSubmissionsDirectory();
-            if (Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
+            Directory.Delete(GetSubmissionsDirectory(), recursive: true);
         }
 
-        private void SaveSubmission(string text)
+        private static void SaveSubmission(string text)
         {
             if (_loadingSubmission)
                 return;
