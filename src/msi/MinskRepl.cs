@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Minsk.CodeAnalysis;
+using Minsk.CodeAnalysis.Authoring;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 using Minsk.IO;
@@ -11,8 +13,9 @@ namespace Minsk
 {
     internal sealed class MinskRepl : Repl
     {
-        private static bool _loadingSubmission;
-        private Compilation _previous;
+        private bool _loadingSubmission;
+        private static readonly Compilation emptyCompilation = Compilation.CreateScript(null);
+        private Compilation? _previous;
         private bool _showTree;
         private bool _showProgram;
         private readonly Dictionary<VariableSymbol, object> _variables = new Dictionary<VariableSymbol, object>();
@@ -22,31 +25,55 @@ namespace Minsk
             LoadSubmissions();
         }
 
-        protected override void RenderLine(string line)
+        protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
         {
-            var tokens = SyntaxTree.ParseTokens(line);
-            foreach (var token in tokens)
+            SyntaxTree syntaxTree;
+
+            if (state == null)
             {
-                var isKeyword = token.Kind.ToString().EndsWith("Keyword");
-                var isIdentifier = token.Kind == SyntaxKind.IdentifierToken;
-                var isNumber = token.Kind == SyntaxKind.NumberToken;
-                var isString = token.Kind == SyntaxKind.StringToken;
+                var text = string.Join(Environment.NewLine, lines);
+                syntaxTree = SyntaxTree.Parse(text);
+            }
+            else
+            {
+                syntaxTree = (SyntaxTree) state;
+            }
 
-                if (isKeyword)
-                    Console.ForegroundColor = ConsoleColor.Blue;
-                else if (isIdentifier)
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                else if (isNumber)
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                else if (isString)
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                else
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
+            var lineSpan = syntaxTree.Text.Lines[lineIndex].Span;
+            var classifiedSpans = Classifier.Classify(syntaxTree, lineSpan);
 
-                Console.Write(token.Text);
+            foreach (var classifiedSpan in classifiedSpans)
+            {
+                var classifiedText = syntaxTree.Text.ToString(classifiedSpan.Span);
 
+                switch (classifiedSpan.Classification)
+                {
+                    case Classification.Keyword:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        break;
+                    case Classification.Identifier:
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        break;
+                    case Classification.Number:
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        break;
+                    case Classification.String:
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        break;
+                    case Classification.Comment:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                    case Classification.Text:
+                    default:
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        break;
+                }
+
+                Console.Write(classifiedText);
                 Console.ResetColor();
             }
+
+            return syntaxTree;
         }
 
         [MetaCommand("exit", "Exits the REPL")]
@@ -103,10 +130,8 @@ namespace Minsk
         [MetaCommand("ls", "Lists all symbols")]
         private void EvaluateLs()
         {
-            if (_previous == null)
-                return;
-
-            var symbols = _previous.GetSymbols().OrderBy(s => s.Kind).ThenBy(s => s.Name);
+            var compilation = _previous ?? emptyCompilation;
+            var symbols = compilation.GetSymbols().OrderBy(s => s.Kind).ThenBy(s => s.Name);
             foreach (var symbol in symbols)
             {
                 symbol.WriteTo(Console.Out);
@@ -117,10 +142,8 @@ namespace Minsk
         [MetaCommand("dump", "Shows bound tree of a given function")]
         private void EvaluateDump(string functionName)
         {
-            if (_previous == null)
-                return;
-
-            var symbol = _previous.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
+            var compilation = _previous ?? emptyCompilation;
+            var symbol = compilation.GetSymbols().OfType<FunctionSymbol>().SingleOrDefault(f => f.Name == functionName);
             if (symbol == null)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -129,7 +152,7 @@ namespace Minsk
                 return;
             }
 
-            _previous.EmitTree(symbol, Console.Out);
+            compilation.EmitTree(symbol, Console.Out);
         }
 
         protected override bool IsCompleteSubmission(string text)
@@ -148,7 +171,8 @@ namespace Minsk
             var syntaxTree = SyntaxTree.Parse(text);
 
             // Use Members because we need to exclude the EndOfFileToken.
-            if (syntaxTree.Root.Members.Last().GetLastToken().IsMissing)
+            var lastMember = syntaxTree.Root.Members.LastOrDefault();
+            if (lastMember == null || lastMember.GetLastToken().IsMissing)
                 return false;
 
             return true;
@@ -157,10 +181,7 @@ namespace Minsk
         protected override void EvaluateSubmission(string text)
         {
             var syntaxTree = SyntaxTree.Parse(text);
-
-            var compilation = _previous == null
-                                ? new Compilation(syntaxTree)
-                                : _previous.ContinueWith(syntaxTree);
+            var compilation = Compilation.CreateScript(_previous, syntaxTree);
 
             if (_showTree)
                 syntaxTree.Root.WriteTo(Console.Out);
@@ -170,8 +191,10 @@ namespace Minsk
 
             var result = compilation.Evaluate(_variables);
 
-            if (!result.Diagnostics.Any())
+            if (!result.ErrorDiagnostics.Any())
             {
+                Console.Out.WriteDiagnostics(result.WarningDiagnostics);
+
                 if (result.Value != null)
                 {
                     Console.ForegroundColor = ConsoleColor.White;
@@ -222,10 +245,12 @@ namespace Minsk
 
         private static void ClearSubmissions()
         {
-            Directory.Delete(GetSubmissionsDirectory(), recursive: true);
+            var dir = GetSubmissionsDirectory();
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
         }
 
-        private static void SaveSubmission(string text)
+        private void SaveSubmission(string text)
         {
             if (_loadingSubmission)
                 return;

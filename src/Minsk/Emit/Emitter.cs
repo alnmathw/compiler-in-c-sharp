@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Minsk.CodeAnalysis.Binding;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
@@ -19,7 +21,10 @@ namespace Minsk.CodeAnalysis.Emit
         private readonly MethodReference _objectEqualsReference;
         private readonly MethodReference _consoleReadLineReference;
         private readonly MethodReference _consoleWriteLineReference;
-        private readonly MethodReference _stringConcatReference;
+        private readonly MethodReference _stringConcat2Reference;
+        private readonly MethodReference _stringConcat3Reference;
+        private readonly MethodReference _stringConcat4Reference;
+        private readonly MethodReference _stringConcatArrayReference;
         private readonly MethodReference _convertToBooleanReference;
         private readonly MethodReference _convertToInt32Reference;
         private readonly MethodReference _convertToStringReference;
@@ -33,7 +38,7 @@ namespace Minsk.CodeAnalysis.Emit
         private readonly List<(int InstructionIndex, BoundLabel Target)> _fixups = new List<(int InstructionIndex, BoundLabel Target)>();
 
         private TypeDefinition _typeDefinition;
-        private FieldDefinition _randomFieldDefinition;
+        private FieldDefinition? _randomFieldDefinition;
 
         private Emitter(string moduleName, string[] references)
         {
@@ -71,7 +76,7 @@ namespace Minsk.CodeAnalysis.Emit
                 _knownTypes.Add(typeSymbol, typeReference);
             }
 
-            TypeReference ResolveType(string minskName, string metadataName)
+            TypeReference ResolveType(string? minskName, string metadataName)
             {
                 var foundTypes = assemblies.SelectMany(a => a.Modules)
                                            .SelectMany(m => m.Types)
@@ -91,7 +96,7 @@ namespace Minsk.CodeAnalysis.Emit
                     _diagnostics.ReportRequiredTypeAmbiguous(minskName, metadataName, foundTypes);
                 }
 
-                return null;
+                return null!;
             }
 
             MethodReference ResolveMethod(string typeName, string methodName, string[] parameterTypeNames)
@@ -128,7 +133,7 @@ namespace Minsk.CodeAnalysis.Emit
                     }
 
                     _diagnostics.ReportRequiredMethodNotFound(typeName, methodName, parameterTypeNames);
-                    return null;
+                    return null!;
                 }
                 else if (foundTypes.Length == 0)
                 {
@@ -139,24 +144,38 @@ namespace Minsk.CodeAnalysis.Emit
                     _diagnostics.ReportRequiredTypeAmbiguous(null, typeName, foundTypes);
                 }
 
-                return null;
+                return null!;
             }
 
             _objectEqualsReference = ResolveMethod("System.Object", "Equals", new [] { "System.Object", "System.Object" });
             _consoleReadLineReference = ResolveMethod("System.Console", "ReadLine", Array.Empty<string>());
             _consoleWriteLineReference = ResolveMethod("System.Console", "WriteLine", new [] { "System.Object" });
-            _stringConcatReference = ResolveMethod("System.String", "Concat", new [] { "System.String", "System.String" });
+            _stringConcat2Reference = ResolveMethod("System.String", "Concat", new [] { "System.String", "System.String" });
+            _stringConcat3Reference = ResolveMethod("System.String", "Concat", new [] { "System.String", "System.String", "System.String" });
+            _stringConcat4Reference = ResolveMethod("System.String", "Concat", new [] { "System.String", "System.String", "System.String", "System.String" });
+            _stringConcatArrayReference = ResolveMethod("System.String", "Concat", new [] { "System.String[]" });
             _convertToBooleanReference = ResolveMethod("System.Convert", "ToBoolean", new [] { "System.Object" });
             _convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new [] { "System.Object" });
             _convertToStringReference = ResolveMethod("System.Convert", "ToString", new [] { "System.Object" });
             _randomReference = ResolveType(null, "System.Random");
             _randomCtorReference = ResolveMethod("System.Random", ".ctor", Array.Empty<string>());
             _randomNextReference = ResolveMethod("System.Random", "Next", new [] { "System.Int32" });
+
+            var objectType = _knownTypes[TypeSymbol.Any];
+            if (objectType != null)
+            {
+                _typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
+                _assemblyDefinition.MainModule.Types.Add(_typeDefinition);
+            }
+            else
+            {
+                _typeDefinition = null!;
+            }
         }
 
         public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
         {
-            if (program.Diagnostics.Any())
+            if (program.ErrorDiagnostics.Any())
                 return program.Diagnostics;
 
             var emitter = new Emitter(moduleName, references);
@@ -167,10 +186,6 @@ namespace Minsk.CodeAnalysis.Emit
         {
             if (_diagnostics.Any())
                 return _diagnostics.ToImmutableArray();
-
-            var objectType = _knownTypes[TypeSymbol.Any];
-            _typeDefinition = new TypeDefinition("", "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
-            _assemblyDefinition.MainModule.Types.Add(_typeDefinition);
 
             foreach (var functionWithBody in program.Functions)
                 EmitFunctionDeclaration(functionWithBody.Key);
@@ -344,6 +359,8 @@ namespace Minsk.CodeAnalysis.Emit
 
         private void EmitConstantExpression(ILProcessor ilProcessor, BoundExpression node)
         {
+            Debug.Assert(node.ConstantValue != null);
+
             if (node.Type == TypeSymbol.Bool)
             {
                 var value = (bool)node.ConstantValue.Value;
@@ -416,19 +433,19 @@ namespace Minsk.CodeAnalysis.Emit
 
         private void EmitBinaryExpression(ILProcessor ilProcessor, BoundBinaryExpression node)
         {
-            EmitExpression(ilProcessor, node.Left);
-            EmitExpression(ilProcessor, node.Right);
-
             // +(string, string)
 
             if (node.Op.Kind == BoundBinaryOperatorKind.Addition)
             {
                 if (node.Left.Type == TypeSymbol.String && node.Right.Type == TypeSymbol.String)
                 {
-                    ilProcessor.Emit(OpCodes.Call, _stringConcatReference);
+                    EmitStringConcatExpression(ilProcessor, node);
                     return;
                 }
             }
+
+            EmitExpression(ilProcessor, node.Left);
+            EmitExpression(ilProcessor, node.Right);
 
             // ==(any, any)
             // ==(string, string)
@@ -511,6 +528,118 @@ namespace Minsk.CodeAnalysis.Emit
                     break;
                 default:
                     throw new Exception($"Unexpected binary operator {SyntaxFacts.GetText(node.Op.SyntaxKind)}({node.Left.Type}, {node.Right.Type})");
+            }
+        }
+
+        private void EmitStringConcatExpression(ILProcessor ilProcessor, BoundBinaryExpression node)
+        {
+            // Flatten the expression tree to a sequence of nodes to concatenate, then fold consecutive constants in that sequence.
+            // This approach enables constant folding of non-sibling nodes, which cannot be done in the ConstantFolding class as it would require changing the tree.
+            // Example: folding b and c in ((a + b) + c) if they are constant.
+
+            var nodes = FoldConstants(Flatten(node)).ToList();
+
+            switch (nodes.Count)
+            {
+                case 0:
+                    ilProcessor.Emit(OpCodes.Ldstr, string.Empty);
+                    break;
+
+                case 1:
+                    EmitExpression(ilProcessor, nodes[0]);
+                    break;
+
+                case 2:
+                    EmitExpression(ilProcessor, nodes[0]);
+                    EmitExpression(ilProcessor, nodes[1]);
+                    ilProcessor.Emit(OpCodes.Call, _stringConcat2Reference);
+                    break;
+
+                case 3:
+                    EmitExpression(ilProcessor, nodes[0]);
+                    EmitExpression(ilProcessor, nodes[1]);
+                    EmitExpression(ilProcessor, nodes[2]);
+                    ilProcessor.Emit(OpCodes.Call, _stringConcat3Reference);
+                    break;
+
+                case 4:
+                    EmitExpression(ilProcessor, nodes[0]);
+                    EmitExpression(ilProcessor, nodes[1]);
+                    EmitExpression(ilProcessor, nodes[2]);
+                    EmitExpression(ilProcessor, nodes[3]);
+                    ilProcessor.Emit(OpCodes.Call, _stringConcat4Reference);
+                    break;
+
+                default:
+                    ilProcessor.Emit(OpCodes.Ldc_I4, nodes.Count);
+                    ilProcessor.Emit(OpCodes.Newarr, _knownTypes[TypeSymbol.String]);
+
+                    for (var i = 0; i < nodes.Count; i++)
+                    {
+                        ilProcessor.Emit(OpCodes.Dup);
+                        ilProcessor.Emit(OpCodes.Ldc_I4, i);
+                        EmitExpression(ilProcessor, nodes[i]);
+                        ilProcessor.Emit(OpCodes.Stelem_Ref);
+                    }
+
+                    ilProcessor.Emit(OpCodes.Call, _stringConcatArrayReference);
+                    break;
+            }
+
+            // (a + b) + (c + d) --> [a, b, c, d]
+            static IEnumerable<BoundExpression> Flatten(BoundExpression node)
+            {
+                if (node is BoundBinaryExpression binaryExpression &&
+                    binaryExpression.Op.Kind == BoundBinaryOperatorKind.Addition &&
+                    binaryExpression.Left.Type == TypeSymbol.String &&
+                    binaryExpression.Right.Type == TypeSymbol.String)
+                {
+                    foreach (var result in Flatten(binaryExpression.Left))
+                        yield return result;
+
+                    foreach (var result in Flatten(binaryExpression.Right))
+                        yield return result;
+                }
+                else
+                {
+                    if (node.Type != TypeSymbol.String)
+                        throw new Exception($"Unexpected node type in string concatenation: {node.Type}");
+
+                    yield return node;
+                }
+            }
+
+            // [a, "foo", "bar", b, ""] --> [a, "foobar", b]
+            static IEnumerable<BoundExpression> FoldConstants(IEnumerable<BoundExpression> nodes)
+            {
+                StringBuilder? sb = null;
+
+                foreach (var node in nodes)
+                {
+                    if (node.ConstantValue != null)
+                    {
+                        var stringValue = (string)node.ConstantValue.Value;
+
+                        if (string.IsNullOrEmpty(stringValue))
+                            continue;
+
+                        sb ??= new StringBuilder();
+                        sb.Append(stringValue);
+                    }
+                    else
+                    {
+                        if (sb?.Length > 0)
+                        {
+                            yield return new BoundLiteralExpression(sb.ToString());
+                            sb.Clear();
+                        }
+
+                        yield return node;
+                    }
+                }
+
+                if (sb?.Length > 0)
+                    yield return new BoundLiteralExpression(sb.ToString());
             }
         }
 

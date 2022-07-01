@@ -6,19 +6,16 @@ using System.Linq;
 using System.Threading;
 using Minsk.CodeAnalysis.Binding;
 using Minsk.CodeAnalysis.Emit;
-using Minsk.CodeAnalysis.Lowering;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
-
-using ReflectionBindingFlags = System.Reflection.BindingFlags;
 
 namespace Minsk.CodeAnalysis
 {
     public sealed class Compilation
     {
-        private BoundGlobalScope _globalScope;
+        private BoundGlobalScope? _globalScope;
 
-        private Compilation(bool isScript, Compilation previous, params SyntaxTree[] syntaxTrees)
+        private Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
             IsScript = isScript;
             Previous = previous;
@@ -30,15 +27,15 @@ namespace Minsk.CodeAnalysis
             return new Compilation(isScript: false, previous: null, syntaxTrees);
         }
 
-        public static Compilation CreateScript(Compilation previous, params SyntaxTree[] syntaxTrees)
+        public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
             return new Compilation(isScript: true, previous, syntaxTrees);
         }
 
         public bool IsScript { get; }
-        public Compilation Previous { get; }
+        public Compilation? Previous { get; }
         public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
-        public FunctionSymbol MainFunction => GlobalScope.MainFunction;
+        public FunctionSymbol? MainFunction => GlobalScope.MainFunction;
         public ImmutableArray<FunctionSymbol> Functions => GlobalScope.Functions;
         public ImmutableArray<VariableSymbol> Variables => GlobalScope.Variables;
 
@@ -89,11 +86,8 @@ namespace Minsk.CodeAnalysis
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
-
-            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
-            if (diagnostics.Any())
-                return new EvaluationResult(diagnostics, null);
+            if (GlobalScope.Diagnostics.Any())
+                return new EvaluationResult(GlobalScope.Diagnostics, null);
 
             var program = GetProgram();
 
@@ -107,12 +101,13 @@ namespace Minsk.CodeAnalysis
             // using (var streamWriter = new StreamWriter(cfgPath))
             //     cfg.WriteTo(streamWriter);
 
-            if (program.Diagnostics.Any())
-                return new EvaluationResult(program.Diagnostics.ToImmutableArray(), null);
+            if (program.ErrorDiagnostics.Any())
+                return new EvaluationResult(program.Diagnostics, null);
 
             var evaluator = new Evaluator(program, variables);
             var value = evaluator.Evaluate();
-            return new EvaluationResult(ImmutableArray<Diagnostic>.Empty, value);
+
+            return new EvaluationResult(program.WarningDiagnostics, value);
         }
 
         public void EmitTree(TextWriter writer)
@@ -138,9 +133,10 @@ namespace Minsk.CodeAnalysis
             var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
 
             var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
-            if (diagnostics.Any())
+            var errorDiagnostics = diagnostics.Where(d => d.IsError);
+            if (errorDiagnostics.Any())
                 return diagnostics;
-            
+
             var program = GetProgram();
             return Emitter.Emit(program, moduleName, references, outputPath);
         }
