@@ -1,144 +1,93 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Minsk.CodeAnalysis;
 using Minsk.CodeAnalysis.Syntax;
-using Minsk.CodeAnalysis.Text;
+using Minsk.IO;
+using Mono.Options;
 
-namespace Minsk.IO
+namespace Minsk
 {
-    public static class TextWriterExtensions
+    internal static class Program
     {
-        private static bool IsConsole(this TextWriter writer)
+        private static int Main(string[] args)
         {
-            if (writer == Console.Out)
-                return !Console.IsOutputRedirected;
+            var outputPath = (string?) null;
+            var moduleName = (string?) null;
+            var referencePaths = new List<string>();
+            var sourcePaths = new List<string>();
+            var helpRequested = false;
 
-            if (writer == Console.Error)
-                return !Console.IsErrorRedirected && !Console.IsOutputRedirected; // Color codes are always output to Console.Out
-
-            if (writer is IndentedTextWriter iw && iw.InnerWriter.IsConsole())
-                return true;
-
-            return false;
-        }
-
-        private static void SetForeground(this TextWriter writer, ConsoleColor color)
-        {
-            if (writer.IsConsole())
-                Console.ForegroundColor = color;
-        }
-
-        private static void ResetColor(this TextWriter writer)
-        {
-            if (writer.IsConsole())
-                Console.ResetColor();
-        }
-
-        public static void WriteKeyword(this TextWriter writer, SyntaxKind kind)
-        {
-            writer.WriteKeyword(SyntaxFacts.GetText(kind));
-        }
-
-        public static void WriteKeyword(this TextWriter writer, string text)
-        {
-            writer.SetForeground(ConsoleColor.Blue);
-            writer.Write(text);
-            writer.ResetColor();
-        }
-
-        public static void WriteIdentifier(this TextWriter writer, string text)
-        {
-            writer.SetForeground(ConsoleColor.DarkYellow);
-            writer.Write(text);
-            writer.ResetColor();
-        }
-
-        public static void WriteNumber(this TextWriter writer, string text)
-        {
-            writer.SetForeground(ConsoleColor.Cyan);
-            writer.Write(text);
-            writer.ResetColor();
-        }
-
-        public static void WriteString(this TextWriter writer, string text)
-        {
-            writer.SetForeground(ConsoleColor.Magenta);
-            writer.Write(text);
-            writer.ResetColor();
-        }
-
-        public static void WriteSpace(this TextWriter writer)
-        {
-            writer.WritePunctuation(" ");
-        }
-
-        public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
-        {
-            writer.WritePunctuation(SyntaxFacts.GetText(kind));
-        }
-
-        public static void WritePunctuation(this TextWriter writer, string text)
-        {
-            writer.SetForeground(ConsoleColor.DarkGray);
-            writer.Write(text);
-            writer.ResetColor();
-        }
-
-        public static void WriteDiagnostics(this TextWriter writer, IEnumerable<Diagnostic> diagnostics)
-        {
-            foreach (var diagnostic in diagnostics.Where(d => d.Location.Text == null))
+            var options = new OptionSet
             {
-                writer.SetForeground(ConsoleColor.DarkRed);
-                writer.WriteLine(diagnostic.Message);
-                writer.ResetColor();
+                "usage: msc <source-paths> [options]",
+                { "r=", "The {path} of an assembly to reference", v => referencePaths.Add(v) },
+                { "o=", "The output {path} of the assembly to create", v => outputPath = v },
+                { "m=", "The {name} of the module", v => moduleName = v },
+                { "?|h|help", "Prints help", v => helpRequested = true },
+                { "<>", v => sourcePaths.Add(v) }
+            };
+
+            options.Parse(args);
+
+            if (helpRequested)
+            {
+                options.WriteOptionDescriptions(Console.Out);
+                return 0;
             }
 
-            foreach (var diagnostic in diagnostics.Where(d => d.Location.Text != null)
-                                                  .OrderBy(d => d.Location.FileName)
-                                                  .ThenBy(d => d.Location.Span.Start)
-                                                  .ThenBy(d => d.Location.Span.Length))
+            if (sourcePaths.Count == 0)
             {
-                var text = diagnostic.Location.Text;
-                var fileName = diagnostic.Location.FileName;
-                var startLine = diagnostic.Location.StartLine + 1;
-                var startCharacter = diagnostic.Location.StartCharacter + 1;
-                var endLine = diagnostic.Location.EndLine + 1;
-                var endCharacter = diagnostic.Location.EndCharacter + 1;
-
-                var span = diagnostic.Location.Span;
-                var lineIndex = text.GetLineIndex(span.Start);
-                var line = text.Lines[lineIndex];
-
-                writer.WriteLine();
-
-                writer.SetForeground(ConsoleColor.DarkRed);
-                writer.Write($"{fileName}({startLine},{startCharacter},{endLine},{endCharacter}): ");
-                writer.WriteLine(diagnostic);
-                writer.ResetColor();
-
-                var prefixSpan = TextSpan.FromBounds(line.Start, span.Start);
-                var suffixSpan = TextSpan.FromBounds(span.End, line.End);
-
-                var prefix = text.ToString(prefixSpan);
-                var error = text.ToString(span);
-                var suffix = text.ToString(suffixSpan);
-
-                writer.Write("    ");
-                writer.Write(prefix);
-
-                writer.SetForeground(ConsoleColor.DarkRed);
-                writer.Write(error);
-                writer.ResetColor();
-
-                writer.Write(suffix);
-
-                writer.WriteLine();
+                Console.Error.WriteLine("error: need at least one source file");
+                return 1;
             }
 
-            writer.WriteLine();
+            if (outputPath == null)
+                outputPath = Path.ChangeExtension(sourcePaths[0], ".exe");
+
+            if (moduleName == null)
+                moduleName = Path.GetFileNameWithoutExtension(outputPath);
+
+            var syntaxTrees = new List<SyntaxTree>();
+            var hasErrors = false;
+
+            foreach (var path in sourcePaths)
+            {
+                if (!File.Exists(path))
+                {
+                    Console.Error.WriteLine($"error: file '{path}' doesn't exist");
+                    hasErrors = true;
+                    continue;
+                }
+
+                var syntaxTree = SyntaxTree.Load(path);
+                syntaxTrees.Add(syntaxTree);
+            }
+
+            foreach (var path in referencePaths)
+            {
+                if (!File.Exists(path))
+                {
+                    Console.Error.WriteLine($"error: file '{path}' doesn't exist");
+                    hasErrors = true;
+                    continue;
+                }
+            }
+
+            if (hasErrors)
+                return 1;
+
+            var compilation = Compilation.Create(syntaxTrees.ToArray());
+            var diagnostics = compilation.Emit(moduleName, referencePaths.ToArray(), outputPath);
+
+            if (diagnostics.Any())
+            {
+                Console.Error.WriteDiagnostics(diagnostics);
+                return 1;
+            }
+
+            return 0;
         }
     }
 }
