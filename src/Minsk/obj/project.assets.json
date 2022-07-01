@@ -11,6 +11,21 @@
           "lib/netstandard1.0/_._": {}
         }
       },
+      "Mono.Cecil/0.11.4": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {},
+          "lib/netstandard2.0/Mono.Cecil.dll": {}
+        }
+      },
       "NETStandard.Library/2.0.3": {
         "type": "package",
         "dependencies": {
@@ -84,7 +99,7 @@
   },
   "libraries": {
     "Microsoft.NETCore.Platforms/1.1.0": {
-      "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVmiTH/+P3o2iDTak+S08V2+A==",
+      "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
       "type": "package",
       "path": "microsoft.netcore.platforms/1.1.0",
       "files": [
@@ -96,6 +111,33 @@
         "microsoft.netcore.platforms.1.1.0.nupkg.sha512",
         "microsoft.netcore.platforms.nuspec",
         "runtime.json"
+      ]
+    },
+    "Mono.Cecil/0.11.4": {
+      "sha512": "IC1h5g0NeJGHIUgzM1P82ld57knhP0IcQfrYITDPXlNpMYGUrsG5TxuaWTjaeqDNQMBDNZkB8L0rBnwsY6JHuQ==",
+      "type": "package",
+      "path": "mono.cecil/0.11.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Mono.Cecil.Mdb.dll",
+        "lib/net40/Mono.Cecil.Mdb.pdb",
+        "lib/net40/Mono.Cecil.Pdb.dll",
+        "lib/net40/Mono.Cecil.Pdb.pdb",
+        "lib/net40/Mono.Cecil.Rocks.dll",
+        "lib/net40/Mono.Cecil.Rocks.pdb",
+        "lib/net40/Mono.Cecil.dll",
+        "lib/net40/Mono.Cecil.pdb",
+        "lib/netstandard2.0/Mono.Cecil.Mdb.dll",
+        "lib/netstandard2.0/Mono.Cecil.Mdb.pdb",
+        "lib/netstandard2.0/Mono.Cecil.Pdb.dll",
+        "lib/netstandard2.0/Mono.Cecil.Pdb.pdb",
+        "lib/netstandard2.0/Mono.Cecil.Rocks.dll",
+        "lib/netstandard2.0/Mono.Cecil.Rocks.pdb",
+        "lib/netstandard2.0/Mono.Cecil.dll",
+        "lib/netstandard2.0/Mono.Cecil.pdb",
+        "mono.cecil.0.11.4.nupkg.sha512",
+        "mono.cecil.nuspec"
       ]
     },
     "NETStandard.Library/2.0.3": {
@@ -375,6 +417,7 @@
   },
   "projectFileDependencyGroups": {
     ".NETStandard,Version=v2.0": [
+      "Mono.Cecil >= *",
       "NETStandard.Library >= 2.0.3",
       "System.Collections.Immutable >= 6.0.0"
     ]
@@ -414,6 +457,10 @@
     "frameworks": {
       "netstandard2.0": {
         "dependencies": {
+          "Mono.Cecil": {
+            "target": "Package",
+            "version": "[*, )"
+          },
           "NETStandard.Library": {
             "suppressParent": "All",
             "target": "Package",

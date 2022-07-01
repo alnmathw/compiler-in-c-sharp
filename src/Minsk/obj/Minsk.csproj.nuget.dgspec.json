@@ -36,6 +36,10 @@
       "frameworks": {
         "netstandard2.0": {
           "dependencies": {
+            "Mono.Cecil": {
+              "target": "Package",
+              "version": "[*, )"
+            },
             "NETStandard.Library": {
               "suppressParent": "All",
               "target": "Package",
