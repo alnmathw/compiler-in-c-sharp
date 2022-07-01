@@ -46,6 +46,12 @@ namespace Minsk.CodeAnalysis
             Report(location, message);
         }
 
+        public void ReportUnterminatedMultiLineComment(TextLocation location)
+        {
+            var message = "Unterminated multi-line comment.";
+            Report(location, message);
+        }
+
         public void ReportUnexpectedToken(TextLocation location, SyntaxKind actualKind, SyntaxKind expectedKind)
         {
             var message = $"Unexpected token <{actualKind}>, expected <{expectedKind}>.";
@@ -209,7 +215,7 @@ namespace Minsk.CodeAnalysis
             var assemblyNames = foundTypes.Select(t => t.Module.Assembly.Name.Name);
             var assemblyNameList = string.Join(", ", assemblyNames);
             var message = minskName == null
-                ? $"The required type '{minskName}' was found in multiple references: {assemblyNameList}."
+                ? $"The required type '{metadataName}' was found in multiple references: {assemblyNameList}."
                 : $"The required type '{minskName}' ('{metadataName}') was found in multiple references: {assemblyNameList}.";
             Report(default, message);
         }
