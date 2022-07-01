@@ -175,7 +175,7 @@ namespace Minsk.CodeAnalysis.Emit
 
         public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
         {
-            if (program.Diagnostics.Any())
+            if (program.ErrorDiagnostics.Any())
                 return program.Diagnostics;
 
             var emitter = new Emitter(moduleName, references);
@@ -489,12 +489,12 @@ namespace Minsk.CodeAnalysis.Emit
                 case BoundBinaryOperatorKind.Division:
                     ilProcessor.Emit(OpCodes.Div);
                     break;
-                // TODO: Implement short-circuit evaluation
+                // TODO: Implement short-circuit evaluation #111
                 case BoundBinaryOperatorKind.LogicalAnd:
                 case BoundBinaryOperatorKind.BitwiseAnd:
                     ilProcessor.Emit(OpCodes.And);
                     break;
-                // TODO: Implement short-circuit evaluation
+                // TODO: Implement short-circuit evaluation #111
                 case BoundBinaryOperatorKind.LogicalOr:
                 case BoundBinaryOperatorKind.BitwiseOr:
                     ilProcessor.Emit(OpCodes.Or);
