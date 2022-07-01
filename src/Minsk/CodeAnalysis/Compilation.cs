@@ -101,12 +101,13 @@ namespace Minsk.CodeAnalysis
             // using (var streamWriter = new StreamWriter(cfgPath))
             //     cfg.WriteTo(streamWriter);
 
-            if (program.Diagnostics.Any())
-                return new EvaluationResult(program.Diagnostics.ToImmutableArray(), null);
+            if (program.ErrorDiagnostics.Any())
+                return new EvaluationResult(program.Diagnostics, null);
 
             var evaluator = new Evaluator(program, variables);
             var value = evaluator.Evaluate();
-            return new EvaluationResult(ImmutableArray<Diagnostic>.Empty, value);
+
+            return new EvaluationResult(program.WarningDiagnostics, value);
         }
 
         public void EmitTree(TextWriter writer)
@@ -127,12 +128,14 @@ namespace Minsk.CodeAnalysis
             body.WriteTo(writer);
         }
 
+        // TODO: References should be part of the compilation, not arguments for Emit
         public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath)
         {
             var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
 
             var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
-            if (diagnostics.Any())
+            var errorDiagnostics = diagnostics.Where(d => d.IsError);
+            if (errorDiagnostics.Any())
                 return diagnostics;
 
             var program = GetProgram();
