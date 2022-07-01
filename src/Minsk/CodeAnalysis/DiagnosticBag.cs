@@ -17,9 +17,9 @@ namespace Minsk.CodeAnalysis
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public void AddRange(DiagnosticBag diagnostics)
+        public void AddRange(IEnumerable<Diagnostic> diagnostics)
         {
-            _diagnostics.AddRange(diagnostics._diagnostics);
+            _diagnostics.AddRange(diagnostics);
         }
 
         private void Report(TextLocation location, string message)
@@ -43,12 +43,6 @@ namespace Minsk.CodeAnalysis
         public void ReportUnterminatedString(TextLocation location)
         {
             var message = "Unterminated string literal.";
-            Report(location, message);
-        }
-
-        public void ReportUnterminatedMultiLineComment(TextLocation location)
-        {
-            var message = "Unterminated multi-line comment.";
             Report(location, message);
         }
 
