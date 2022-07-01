@@ -191,10 +191,8 @@ namespace Minsk
 
             var result = compilation.Evaluate(_variables);
 
-            if (!result.ErrorDiagnostics.Any())
+            if (!result.Diagnostics.Any())
             {
-                Console.Out.WriteDiagnostics(result.WarningDiagnostics);
-
                 if (result.Value != null)
                 {
                     Console.ForegroundColor = ConsoleColor.White;

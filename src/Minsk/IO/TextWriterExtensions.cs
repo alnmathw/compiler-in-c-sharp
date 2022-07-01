@@ -98,8 +98,7 @@ namespace Minsk.IO
         {
             foreach (var diagnostic in diagnostics.Where(d => d.Location.Text == null))
             {
-                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
-                writer.SetForeground(messageColor);
+                writer.SetForeground(ConsoleColor.DarkRed);
                 writer.WriteLine(diagnostic.Message);
                 writer.ResetColor();
             }
@@ -122,8 +121,7 @@ namespace Minsk.IO
 
                 writer.WriteLine();
 
-                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
-                writer.SetForeground(messageColor);
+                writer.SetForeground(ConsoleColor.DarkRed);
                 writer.Write($"{fileName}({startLine},{startCharacter},{endLine},{endCharacter}): ");
                 writer.WriteLine(diagnostic);
                 writer.ResetColor();
