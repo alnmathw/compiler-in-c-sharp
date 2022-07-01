@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minsk.Tests", "Minsk.Tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msc", "msc\msc.csproj", "{2324E231-36C7-46AE-9BFE-74354CC14B5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minsk.Generators", "Minsk.Generators\Minsk.Generators.csproj", "{0F72F816-6140-4B4C-AFB2-303751C8B8FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{2324E231-36C7-46AE-9BFE-74354CC14B5B}.Release|x64.Build.0 = Release|Any CPU
 		{2324E231-36C7-46AE-9BFE-74354CC14B5B}.Release|x86.ActiveCfg = Release|Any CPU
 		{2324E231-36C7-46AE-9BFE-74354CC14B5B}.Release|x86.Build.0 = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|x64.Build.0 = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Debug|x86.Build.0 = Debug|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|x64.ActiveCfg = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|x64.Build.0 = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|x86.ActiveCfg = Release|Any CPU
+		{0F72F816-6140-4B4C-AFB2-303751C8B8FF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
