@@ -17,24 +17,17 @@ namespace Minsk.CodeAnalysis
     {
         private BoundGlobalScope _globalScope;
 
-        private Compilation(bool isScript, Compilation previous, params SyntaxTree[] syntaxTrees)
+        public Compilation(params SyntaxTree[] syntaxTrees)
+            : this(null, syntaxTrees)
         {
-            IsScript = isScript;
+        }
+
+        private Compilation(Compilation previous, params SyntaxTree[] syntaxTrees)
+        {
             Previous = previous;
             SyntaxTrees = syntaxTrees.ToImmutableArray();
         }
 
-        public static Compilation Create(params SyntaxTree[] syntaxTrees)
-        {
-            return new Compilation(isScript: false, previous: null, syntaxTrees);
-        }
-
-        public static Compilation CreateScript(Compilation previous, params SyntaxTree[] syntaxTrees)
-        {
-            return new Compilation(isScript: true, previous, syntaxTrees);
-        }
-
-        public bool IsScript { get; }
         public Compilation Previous { get; }
         public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
         public ImmutableArray<FunctionSymbol> Functions => GlobalScope.Functions;
@@ -46,7 +39,7 @@ namespace Minsk.CodeAnalysis
             {
                 if (_globalScope == null)
                 {
-                    var globalScope = Binder.BindGlobalScope(IsScript, Previous?.GlobalScope, SyntaxTrees);
+                    var globalScope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTrees);
                     Interlocked.CompareExchange(ref _globalScope, globalScope, null);
                 }
 
@@ -61,7 +54,7 @@ namespace Minsk.CodeAnalysis
 
             while (submission != null)
             {
-                const ReflectionBindingFlags bindingFlags =
+                const ReflectionBindingFlags bindingFlags = 
                     ReflectionBindingFlags.Static |
                     ReflectionBindingFlags.Public |
                     ReflectionBindingFlags.NonPublic;
@@ -87,10 +80,9 @@ namespace Minsk.CodeAnalysis
             }
         }
 
-        private BoundProgram GetProgram()
+        public Compilation ContinueWith(SyntaxTree syntaxTree)
         {
-            var previous = Previous == null ? null : Previous.GetProgram();
-            return Binder.BindProgram(IsScript, previous, GlobalScope);
+            return new Compilation(this, syntaxTree);
         }
 
         public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
@@ -101,7 +93,7 @@ namespace Minsk.CodeAnalysis
             if (diagnostics.Any())
                 return new EvaluationResult(diagnostics, null);
 
-            var program = GetProgram();
+            var program = Binder.BindProgram(GlobalScope);
 
             var appPath = Environment.GetCommandLineArgs()[0];
             var appDirectory = Path.GetDirectoryName(appPath);
@@ -123,7 +115,7 @@ namespace Minsk.CodeAnalysis
 
         public void EmitTree(TextWriter writer)
         {
-            var program = GetProgram();
+            var program = Binder.BindProgram(GlobalScope);
 
             if (program.Statement.Statements.Any())
             {
@@ -145,7 +137,7 @@ namespace Minsk.CodeAnalysis
 
         public void EmitTree(FunctionSymbol symbol, TextWriter writer)
         {
-            var program = GetProgram();
+            var program = Binder.BindProgram(GlobalScope);
             symbol.WriteTo(writer);
             writer.WriteLine();
             if (!program.Functions.TryGetValue(symbol, out var body))
