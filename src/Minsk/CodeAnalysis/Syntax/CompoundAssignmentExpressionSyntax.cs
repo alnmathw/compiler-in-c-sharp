@@ -2,7 +2,8 @@ namespace Minsk.CodeAnalysis.Syntax
 {
     public sealed class CompoundAssignmentExpressionSyntax : ExpressionSyntax
     {
-        public CompoundAssignmentExpressionSyntax(SyntaxToken identifierToken, SyntaxToken operatorToken, ExpressionSyntax expression)
+        public CompoundAssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierToken, SyntaxToken operatorToken, ExpressionSyntax expression)
+            : base(syntaxTree)
         {
             IdentifierToken = identifierToken;
             OperatorToken = operatorToken;
@@ -14,4 +15,4 @@ namespace Minsk.CodeAnalysis.Syntax
         public SyntaxToken OperatorToken { get; }
         public ExpressionSyntax Expression { get; }
     }
-} 
+}
