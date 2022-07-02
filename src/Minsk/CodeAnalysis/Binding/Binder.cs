@@ -272,7 +272,8 @@ namespace Minsk.CodeAnalysis.Binding
                 {
                     var isAllowedExpression = es.Expression.Kind == BoundNodeKind.ErrorExpression ||
                                               es.Expression.Kind == BoundNodeKind.AssignmentExpression ||
-                                              es.Expression.Kind == BoundNodeKind.CallExpression;
+                                              es.Expression.Kind == BoundNodeKind.CallExpression ||
+                                              es.Expression.Kind == BoundNodeKind.CompoundAssignmentExpression;
                     if (!isAllowedExpression)
                         _diagnostics.ReportInvalidExpressionStatement(syntax.Location);
                 }
@@ -354,6 +355,15 @@ namespace Minsk.CodeAnalysis.Binding
         private BoundStatement BindIfStatement(IfStatementSyntax syntax)
         {
             var condition = BindExpression(syntax.Condition, TypeSymbol.Bool);
+
+            if (condition.ConstantValue != null)
+            {
+                if ((bool)condition.ConstantValue.Value == false)
+                    _diagnostics.ReportUnreachableCode(syntax.ThenStatement);
+                else if (syntax.ElseClause != null)
+                    _diagnostics.ReportUnreachableCode(syntax.ElseClause.ElseStatement);
+            }
+
             var thenStatement = BindStatement(syntax.ThenStatement);
             var elseStatement = syntax.ElseClause == null ? null : BindStatement(syntax.ElseClause.ElseStatement);
             return new BoundIfStatement(condition, thenStatement, elseStatement);
@@ -362,6 +372,15 @@ namespace Minsk.CodeAnalysis.Binding
         private BoundStatement BindWhileStatement(WhileStatementSyntax syntax)
         {
             var condition = BindExpression(syntax.Condition, TypeSymbol.Bool);
+
+            if (condition.ConstantValue != null)
+            {
+                if (!(bool)condition.ConstantValue.Value)
+                {
+                    _diagnostics.ReportUnreachableCode(syntax.Body);
+                }
+            }
+
             var body = BindLoopBody(syntax.Body, out var breakLabel, out var continueLabel);
             return new BoundWhileStatement(condition, body, breakLabel, continueLabel);
         }
@@ -546,11 +565,27 @@ namespace Minsk.CodeAnalysis.Binding
                 return boundExpression;
 
             if (variable.IsReadOnly)
-                _diagnostics.ReportCannotAssign(syntax.EqualsToken.Location, name);
+                _diagnostics.ReportCannotAssign(syntax.AssignmentToken.Location, name);
 
-            var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+            if (syntax.AssignmentToken.Kind != SyntaxKind.EqualsToken)
+            {
+                var equivalentOperatorTokenKind = SyntaxFacts.GetBinaryOperatorOfAssignmentOperator(syntax.AssignmentToken.Kind);
+                var boundOperator = BoundBinaryOperator.Bind(equivalentOperatorTokenKind, variable.Type, boundExpression.Type);
 
-            return new BoundAssignmentExpression(variable, convertedExpression);
+                if (boundOperator == null)
+                {
+                    _diagnostics.ReportUndefinedBinaryOperator(syntax.AssignmentToken.Location, syntax.AssignmentToken.Text, variable.Type, boundExpression.Type);
+                    return new BoundErrorExpression();
+                }
+
+                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+                return new BoundCompoundAssignmentExpression(variable, boundOperator, convertedExpression);
+            }
+            else
+            {
+                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
+                return new BoundAssignmentExpression(variable, convertedExpression);
+            }
         }
 
         private BoundExpression BindUnaryExpression(UnaryExpressionSyntax syntax)
