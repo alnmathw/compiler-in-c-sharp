@@ -54,20 +54,10 @@ namespace Minsk.CodeAnalysis.Syntax
             }
         }
 
-        public static bool IsComment(this SyntaxKind kind)
-        {
-            return kind == SyntaxKind.SingleLineCommentTrivia ||
-                   kind == SyntaxKind.MultiLineCommentTrivia;
-        }
-
         public static SyntaxKind GetKeywordKind(string text)
         {
             switch (text)
             {
-                case "break":
-                    return SyntaxKind.BreakKeyword;
-                case "continue":
-                    return SyntaxKind.ContinueKeyword;
                 case "else":
                     return SyntaxKind.ElseKeyword;
                 case "false":
@@ -80,8 +70,6 @@ namespace Minsk.CodeAnalysis.Syntax
                     return SyntaxKind.IfKeyword;
                 case "let":
                     return SyntaxKind.LetKeyword;
-                case "return":
-                    return SyntaxKind.ReturnKeyword;
                 case "to":
                     return SyntaxKind.ToKeyword;
                 case "true":
@@ -117,12 +105,14 @@ namespace Minsk.CodeAnalysis.Syntax
             }
         }
 
-        public static string? GetText(SyntaxKind kind)
+        public static string GetText(SyntaxKind kind)
         {
             switch (kind)
             {
                 case SyntaxKind.PlusToken:
                     return "+";
+                 case SyntaxKind.PlusEqualsToken:
+                    return "+=";
                 case SyntaxKind.MinusToken:
                     return "-";
                 case SyntaxKind.StarToken:
@@ -169,10 +159,6 @@ namespace Minsk.CodeAnalysis.Syntax
                     return ":";
                 case SyntaxKind.CommaToken:
                     return ",";
-                case SyntaxKind.BreakKeyword:
-                    return "break";
-                case SyntaxKind.ContinueKeyword:
-                    return "continue";
                 case SyntaxKind.ElseKeyword:
                     return "else";
                 case SyntaxKind.FalseKeyword:
@@ -185,8 +171,6 @@ namespace Minsk.CodeAnalysis.Syntax
                     return "if";
                 case SyntaxKind.LetKeyword:
                     return "let";
-                case SyntaxKind.ReturnKeyword:
-                    return "return";
                 case SyntaxKind.ToKeyword:
                     return "to";
                 case SyntaxKind.TrueKeyword:
@@ -201,31 +185,16 @@ namespace Minsk.CodeAnalysis.Syntax
                     return null;
             }
         }
-
-        public static bool IsTrivia(this SyntaxKind kind)
+    
+        public static SyntaxKind GetSyntaxKindEquivalentForCompoundAssignemntExpressionSyntax(SyntaxKind kind)
         {
-            switch (kind)
+            switch(kind)
             {
-                case SyntaxKind.SkippedTextTrivia:
-                case SyntaxKind.LineBreakTrivia:
-                case SyntaxKind.WhitespaceTrivia:
-                case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.MultiLineCommentTrivia:
-                    return true;
+                case SyntaxKind.PlusEqualsToken:
+                    return SyntaxKind.PlusToken;
                 default:
-                    return false;
+                    throw new Exception($"Invalid syntax kind: '{kind}'");
             }
-        }
-
-        public static bool IsKeyword(this SyntaxKind kind)
-        {
-            return kind.ToString().EndsWith("Keyword");
-        }
-
-        public static bool IsToken(this SyntaxKind kind)
-        {
-            return !kind.IsTrivia() &&
-                   (kind.IsKeyword() || kind.ToString().EndsWith("Token"));
         }
     }
 }
