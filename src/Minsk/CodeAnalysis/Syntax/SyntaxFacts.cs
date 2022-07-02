@@ -215,6 +215,7 @@ namespace Minsk.CodeAnalysis.Syntax
                     return null;
             }
         }
+
         public static bool IsTrivia(this SyntaxKind kind)
         {
             switch (kind)
@@ -240,7 +241,7 @@ namespace Minsk.CodeAnalysis.Syntax
             return !kind.IsTrivia() &&
                    (kind.IsKeyword() || kind.ToString().EndsWith("Token"));
         }
-        public static SyntaxKind GetSyntaxKindEquivalentForCompoundAssignmentExpressionSyntax(SyntaxKind kind)
+        public static SyntaxKind GetBinaryOperatorOfAssignmentOperator(SyntaxKind kind)
         {
             switch(kind)
             {
