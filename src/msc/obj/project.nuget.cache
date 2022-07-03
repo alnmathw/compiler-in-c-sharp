@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "lcYmIaLZHlklb7iZ7UE/ptoAQrqBsJ7U5OW2bfZa+CKCnByBsElC/l0U5M/Ucdonx4VOlxhF5EmL7kQ9ypDA5g==",
+  "dgSpecHash": "zwHZ3SNxQEu3TfnlVwzZiC7Xlei0cVhDpfqwtobCn3aKN812B/vZHn8g9RTC6CfHjGv2jZq3OXkAXBcaqXhCgQ==",
   "success": true,
-  "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/mc/mc.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/msc/msc.csproj",
+  "expectedPackageFiles": [
+    "/home/alnmathw/.nuget/packages/microsoft.net.compilers.toolset/3.6.0-4.final/microsoft.net.compilers.toolset.3.6.0-4.final.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/mono.cecil/0.11.2/mono.cecil.0.11.2.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/mono.options/6.6.0.161/mono.options.6.6.0.161.nupkg.sha512",
+    "/home/alnmathw/.nuget/packages/system.collections.immutable/1.7.0/system.collections.immutable.1.7.0.nupkg.sha512"
+  ],
   "logs": []
 }

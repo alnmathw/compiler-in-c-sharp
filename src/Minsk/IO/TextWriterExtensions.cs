@@ -79,6 +79,14 @@ namespace Minsk.IO
             writer.WritePunctuation(" ");
         }
 
+        public static void WriteComment(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.DarkGreen);
+            writer.Write("// ");
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
         public static void WritePunctuation(this TextWriter writer, SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind);
@@ -98,7 +106,8 @@ namespace Minsk.IO
         {
             foreach (var diagnostic in diagnostics.Where(d => d.Location.Text == null))
             {
-                writer.SetForeground(ConsoleColor.DarkRed);
+                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
+                writer.SetForeground(messageColor);
                 writer.WriteLine(diagnostic.Message);
                 writer.ResetColor();
             }
@@ -121,7 +130,8 @@ namespace Minsk.IO
 
                 writer.WriteLine();
 
-                writer.SetForeground(ConsoleColor.DarkRed);
+                var messageColor = diagnostic.IsWarning ? ConsoleColor.DarkYellow : ConsoleColor.DarkRed;
+                writer.SetForeground(messageColor);
                 writer.Write($"{fileName}({startLine},{startCharacter},{endLine},{endCharacter}): ");
                 writer.WriteLine(diagnostic);
                 writer.ResetColor();

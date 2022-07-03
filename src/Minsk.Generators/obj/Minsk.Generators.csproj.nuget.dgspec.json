@@ -36,6 +36,15 @@
       "frameworks": {
         "netstandard2.0": {
           "dependencies": {
+            "Microsoft.CodeAnalysis.CSharp.Workspaces": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.6.0-4.final, )"
+            },
+            "Microsoft.NET.Compilers.ToolSet": {
+              "target": "Package",
+              "version": "[3.6.0-4.final, )"
+            },
             "NETStandard.Library": {
               "suppressParent": "All",
               "target": "Package",

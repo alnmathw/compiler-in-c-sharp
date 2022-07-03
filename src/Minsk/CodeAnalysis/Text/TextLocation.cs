@@ -17,4 +17,4 @@ namespace Minsk.CodeAnalysis.Text
         public int EndLine => Text.GetLineIndex(Span.End);
         public int EndCharacter => Span.End - Text.Lines[EndLine].Start;
     }
-} 
+}

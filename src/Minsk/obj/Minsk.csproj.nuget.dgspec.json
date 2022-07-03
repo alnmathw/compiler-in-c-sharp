@@ -17,13 +17,13 @@
           "/home/alnmathw/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "netstandard2.0"
+          "netcoreapp3.1"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netstandard2.0": {
+          "netcoreapp3.1": {
             "projectReferences": {}
           }
         },
@@ -34,21 +34,19 @@
         }
       },
       "frameworks": {
-        "netstandard2.0": {
+        "netcoreapp3.1": {
           "dependencies": {
+            "Microsoft.NET.Compilers.ToolSet": {
+              "target": "Package",
+              "version": "[3.6.0-4.final, )"
+            },
             "Mono.Cecil": {
               "target": "Package",
-              "version": "[*, )"
-            },
-            "NETStandard.Library": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[2.0.3, )",
-              "autoReferenced": true
+              "version": "[0.11.2, )"
             },
             "System.Collections.Immutable": {
               "target": "Package",
-              "version": "[6.0.0, )"
+              "version": "[1.7.0, )"
             }
           },
           "imports": [
@@ -61,6 +59,11 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
           "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/3.1.420/RuntimeIdentifierGraph.json"
         }
       }

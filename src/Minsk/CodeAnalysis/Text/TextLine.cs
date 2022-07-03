@@ -19,4 +19,4 @@ namespace Minsk.CodeAnalysis.Text
         public TextSpan SpanIncludingLineBreak => new TextSpan(Start, LengthIncludingLineBreak);
         public override string ToString() => Text.ToString(Span);
     }
-} 
+}
