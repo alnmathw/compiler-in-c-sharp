@@ -190,8 +190,9 @@ namespace Minsk
                 compilation.EmitTree(Console.Out);
 
             var result = compilation.Evaluate(_variables);
+            Console.Out.WriteDiagnostics(result.Diagnostics);
 
-            if (!result.Diagnostics.Any())
+            if (!result.Diagnostics.HasErrors())
             {
                 if (result.Value != null)
                 {
@@ -202,10 +203,6 @@ namespace Minsk
                 _previous = compilation;
 
                 SaveSubmission(text);
-            }
-            else
-            {
-                Console.Out.WriteDiagnostics(result.Diagnostics);
             }
         }
 
