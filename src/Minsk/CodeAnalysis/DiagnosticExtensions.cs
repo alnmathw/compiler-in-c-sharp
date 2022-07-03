@@ -16,4 +16,4 @@ namespace Minsk.CodeAnalysis
             return diagnostics.Any(d => d.IsError);
         }
     }
-} 
+}

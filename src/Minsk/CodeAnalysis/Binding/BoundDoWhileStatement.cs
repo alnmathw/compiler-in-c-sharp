@@ -1,19 +1,18 @@
-using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 
 namespace Minsk.CodeAnalysis.Binding
 {
-    internal sealed class BoundConversionExpression : BoundExpression
+    internal sealed class BoundDoWhileStatement : BoundLoopStatement
     {
-        public BoundConversionExpression(SyntaxNode syntax, TypeSymbol type, BoundExpression expression)
-            : base(syntax)
+        public BoundDoWhileStatement(SyntaxNode syntax, BoundStatement body, BoundExpression condition, BoundLabel breakLabel, BoundLabel continueLabel)
+            : base(syntax, breakLabel, continueLabel)
         {
-            Type = type;
-            Expression = expression;
+            Body = body;
+            Condition = condition;
         }
 
-        public override BoundNodeKind Kind => BoundNodeKind.ConversionExpression;
-        public override TypeSymbol Type { get; }
-        public BoundExpression Expression { get; }
+        public override BoundNodeKind Kind => BoundNodeKind.DoWhileStatement;
+        public BoundStatement Body { get; }
+        public BoundExpression Condition { get; }
     }
 }

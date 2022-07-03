@@ -1,21 +1,14 @@
-using System.Collections.Immutable;
-using Minsk.CodeAnalysis.Syntax;
+using Minsk.CodeAnalysis.Binding;
 
 namespace Minsk.CodeAnalysis.Symbols
 {
-    public sealed class FunctionSymbol : Symbol
+    public sealed class GlobalVariableSymbol : VariableSymbol
     {
-        public FunctionSymbol(string name, ImmutableArray<ParameterSymbol> parameters, TypeSymbol type, FunctionDeclarationSyntax? declaration = null)
-            : base(name)
+        internal GlobalVariableSymbol(string name, bool isReadOnly, TypeSymbol type, BoundConstant? constant)
+            : base(name, isReadOnly, type, constant)
         {
-            Parameters = parameters;
-            Type = type;
-            Declaration = declaration;
         }
 
-        public override SymbolKind Kind => SymbolKind.Function;
-        public FunctionDeclarationSyntax? Declaration { get; }
-        public ImmutableArray<ParameterSymbol> Parameters { get; }
-        public TypeSymbol Type { get; }
+        public override SymbolKind Kind => SymbolKind.GlobalVariable;
     }
 }
