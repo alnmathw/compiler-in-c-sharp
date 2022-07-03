@@ -1,8 +1,11 @@
+using Minsk.CodeAnalysis.Syntax;
+
 namespace Minsk.CodeAnalysis.Binding
 {
     internal sealed class BoundIfStatement : BoundStatement
     {
-        public BoundIfStatement(BoundExpression condition, BoundStatement thenStatement, BoundStatement elseStatement)
+        public BoundIfStatement(SyntaxNode syntax, BoundExpression condition, BoundStatement thenStatement, BoundStatement? elseStatement)
+            : base(syntax)
         {
             Condition = condition;
             ThenStatement = thenStatement;
@@ -12,6 +15,6 @@ namespace Minsk.CodeAnalysis.Binding
         public override BoundNodeKind Kind => BoundNodeKind.IfStatement;
         public BoundExpression Condition { get; }
         public BoundStatement ThenStatement { get; }
-        public BoundStatement ElseStatement { get; }
+        public BoundStatement? ElseStatement { get; }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Minsk.CodeAnalysis.Symbols;
 
 namespace Minsk.CodeAnalysis.Binding

@@ -1,13 +1,20 @@
+using Minsk.CodeAnalysis.Syntax;
+
 namespace Minsk.CodeAnalysis.Binding
 {
-    internal sealed class BoundLabelStatement : BoundStatement
+    internal sealed class BoundIfStatement : BoundStatement
     {
-        public BoundLabelStatement(BoundLabel label)
+        public BoundIfStatement(SyntaxNode syntax, BoundExpression condition, BoundStatement thenStatement, BoundStatement? elseStatement)
+            : base(syntax)
         {
-            Label = label;
+            Condition = condition;
+            ThenStatement = thenStatement;
+            ElseStatement = elseStatement;
         }
 
-        public override BoundNodeKind Kind => BoundNodeKind.LabelStatement;
-        public BoundLabel Label { get; }
+        public override BoundNodeKind Kind => BoundNodeKind.IfStatement;
+        public BoundExpression Condition { get; }
+        public BoundStatement ThenStatement { get; }
+        public BoundStatement? ElseStatement { get; }
     }
 }

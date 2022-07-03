@@ -1,274 +1,144 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Minsk.CodeAnalysis.Binding;
+using Minsk.CodeAnalysis.Emit;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 
-namespace Minsk.CodeAnalysis.Lowering
+namespace Minsk.CodeAnalysis
 {
-    // TODO: Consider creating a BoundNodeFactory to construct nodes to make lowering easier to read.
-    internal sealed class Lowerer : BoundTreeRewriter
+    public sealed class Compilation
     {
-        private int _labelCount;
+        private BoundGlobalScope? _globalScope;
 
-        private Lowerer()
+        private Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
+            IsScript = isScript;
+            Previous = previous;
+            SyntaxTrees = syntaxTrees.ToImmutableArray();
         }
 
-        private BoundLabel GenerateLabel()
+        public static Compilation Create(params SyntaxTree[] syntaxTrees)
         {
-            var name = $"Label{++_labelCount}";
-            return new BoundLabel(name);
+            return new Compilation(isScript: false, previous: null, syntaxTrees);
         }
 
-        public static BoundBlockStatement Lower(FunctionSymbol function, BoundStatement statement)
+        public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees)
         {
-            var lowerer = new Lowerer();
-            var result =  lowerer.RewriteStatement(statement);
-            return RemoveDeadCode(Flatten(function, result));
+            return new Compilation(isScript: true, previous, syntaxTrees);
         }
 
-        private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)
-        {
-            var builder = ImmutableArray.CreateBuilder<BoundStatement>();
-            var stack = new Stack<BoundStatement>();
-            stack.Push(statement);
+        public bool IsScript { get; }
+        public Compilation? Previous { get; }
+        public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
+        public FunctionSymbol? MainFunction => GlobalScope.MainFunction;
+        public ImmutableArray<FunctionSymbol> Functions => GlobalScope.Functions;
+        public ImmutableArray<VariableSymbol> Variables => GlobalScope.Variables;
 
-            while (stack.Count > 0)
+        internal BoundGlobalScope GlobalScope
+        {
+            get
             {
-                var current = stack.Pop();
-
-                if (current is BoundBlockStatement block)
+                if (_globalScope == null)
                 {
-                    foreach (var s in block.Statements.Reverse())
-                        stack.Push(s);
+                    var globalScope = Binder.BindGlobalScope(IsScript, Previous?.GlobalScope, SyntaxTrees);
+                    Interlocked.CompareExchange(ref _globalScope, globalScope, null);
                 }
-                else
-                {
-                    builder.Add(current);
-                }
-            }
 
-            if (function.Type == TypeSymbol.Void)
+                return _globalScope;
+            }
+        }
+
+        public IEnumerable<Symbol> GetSymbols()
+        {
+            var submission = this;
+            var seenSymbolNames = new HashSet<string>();
+
+            var builtinFunctions = BuiltinFunctions.GetAll().ToList();
+
+            while (submission != null)
             {
-                if (builder.Count == 0 || CanFallThrough(builder.Last()))
-                {
-                    builder.Add(new BoundReturnStatement(null));
-                }
-            }
+                foreach (var function in submission.Functions)
+                    if (seenSymbolNames.Add(function.Name))
+                        yield return function;
 
-            return new BoundBlockStatement(builder.ToImmutable());
-        }
+                foreach (var variable in submission.Variables)
+                    if (seenSymbolNames.Add(variable.Name))
+                        yield return variable;
 
-        private static bool CanFallThrough(BoundStatement boundStatement)
-        {
-            return boundStatement.Kind != BoundNodeKind.ReturnStatement &&
-                   boundStatement.Kind != BoundNodeKind.GotoStatement;
-        }
+                foreach (var builtin in builtinFunctions)
+                    if (seenSymbolNames.Add(builtin.Name))
+                        yield return builtin;
 
-        private static BoundBlockStatement RemoveDeadCode(BoundBlockStatement node)
-        {
-            var controlFlow = ControlFlowGraph.Create(node);
-            var reachableStatements = new HashSet<BoundStatement>(
-                controlFlow.Blocks.SelectMany(b => b.Statements));
-
-            var builder = node.Statements.ToBuilder();
-            for (int i = builder.Count - 1; i >= 0 ; i--)
-            {
-                if (!reachableStatements.Contains(builder[i]))
-                    builder.RemoveAt(i);
-            }
-
-            return new BoundBlockStatement(builder.ToImmutable());
-        }
-
-        protected override BoundStatement RewriteIfStatement(BoundIfStatement node)
-        {
-            if (node.ElseStatement == null)
-            {
-                // if <condition>
-                //      <then>
-                //
-                // ---->
-                //
-                // gotoFalse <condition> end
-                // <then>
-                // end:
-                var endLabel = GenerateLabel();
-                var gotoFalse = new BoundConditionalGotoStatement(endLabel, node.Condition, false);
-                var endLabelStatement = new BoundLabelStatement(endLabel);
-                var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(gotoFalse, node.ThenStatement, endLabelStatement));
-                return RewriteStatement(result);
-            }
-            else
-            {
-                // if <condition>
-                //      <then>
-                // else
-                //      <else>
-                //
-                // ---->
-                //
-                // gotoFalse <condition> else
-                // <then>
-                // goto end
-                // else:
-                // <else>
-                // end:
-
-                var elseLabel = GenerateLabel();
-                var endLabel = GenerateLabel();
-
-                var gotoFalse = new BoundConditionalGotoStatement(elseLabel, node.Condition, false);
-                var gotoEndStatement = new BoundGotoStatement(endLabel);
-                var elseLabelStatement = new BoundLabelStatement(elseLabel);
-                var endLabelStatement = new BoundLabelStatement(endLabel);
-                var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
-                    gotoFalse,
-                    node.ThenStatement,
-                    gotoEndStatement,
-                    elseLabelStatement,
-                    node.ElseStatement,
-                    endLabelStatement
-                ));
-                return RewriteStatement(result);
+                submission = submission.Previous;
             }
         }
 
-        protected override BoundStatement RewriteWhileStatement(BoundWhileStatement node)
+        private BoundProgram GetProgram()
         {
-            // while <condition>
-            //      <body>
-            //
-            // ----->
-            //
-            // goto continue
-            // body:
-            // <body>
-            // continue:
-            // gotoTrue <condition> body
-            // break:
-
-            var bodyLabel = GenerateLabel();
-
-            var gotoContinue = new BoundGotoStatement(node.ContinueLabel);
-            var bodyLabelStatement = new BoundLabelStatement(bodyLabel);
-            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(bodyLabel, node.Condition);
-            var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
-
-            var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
-                gotoContinue,
-                bodyLabelStatement,
-                node.Body,
-                continueLabelStatement,
-                gotoTrue,
-                breakLabelStatement
-            ));
-
-            return RewriteStatement(result);
+            var previous = Previous == null ? null : Previous.GetProgram();
+            return Binder.BindProgram(IsScript, previous, GlobalScope);
         }
 
-        protected override BoundStatement RewriteDoWhileStatement(BoundDoWhileStatement node)
+        public EvaluationResult Evaluate(Dictionary<VariableSymbol, object> variables)
         {
-            // do
-            //      <body>
-            // while <condition>
-            //
-            // ----->
-            //
-            // body:
-            // <body>
-            // continue:
-            // gotoTrue <condition> body
-            // break:
+            if (GlobalScope.Diagnostics.Any())
+                return new EvaluationResult(GlobalScope.Diagnostics, null);
 
-            var bodyLabel = GenerateLabel();
+            var program = GetProgram();
 
-            var bodyLabelStatement = new BoundLabelStatement(bodyLabel);
-            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
-            var gotoTrue = new BoundConditionalGotoStatement(bodyLabel, node.Condition);
-            var breakLabelStatement = new BoundLabelStatement(node.BreakLabel);
+            // var appPath = Environment.GetCommandLineArgs()[0];
+            // var appDirectory = Path.GetDirectoryName(appPath);
+            // var cfgPath = Path.Combine(appDirectory, "cfg.dot");
+            // var cfgStatement = !program.Statement.Statements.Any() && program.Functions.Any()
+            //                       ? program.Functions.Last().Value
+            //                       : program.Statement;
+            // var cfg = ControlFlowGraph.Create(cfgStatement);
+            // using (var streamWriter = new StreamWriter(cfgPath))
+            //     cfg.WriteTo(streamWriter);
 
-            var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
-                bodyLabelStatement,
-                node.Body,
-                continueLabelStatement,
-                gotoTrue,
-                breakLabelStatement
-            ));
+            if (program.Diagnostics.HasErrors())
+                return new EvaluationResult(program.Diagnostics, null);
 
-            return RewriteStatement(result);
+            var evaluator = new Evaluator(program, variables);
+            var value = evaluator.Evaluate();
+
+            return new EvaluationResult(program.Diagnostics, value);
         }
 
-        protected override BoundStatement RewriteForStatement(BoundForStatement node)
+        public void EmitTree(TextWriter writer)
         {
-            // for <var> = <lower> to <upper>
-            //      <body>
-            //
-            // ---->
-            //
-            // {
-            //      var <var> = <lower>
-            //      let upperBound = <upper>
-            //      while (<var> <= upperBound)
-            //      {
-            //          <body>
-            //          continue:
-            //          <var> = <var> + 1
-            //      }
-            // }
-
-            var variableDeclaration = new BoundVariableDeclaration(node.Variable, node.LowerBound);
-            var variableExpression = new BoundVariableExpression(node.Variable);
-            var upperBoundSymbol = new LocalVariableSymbol("upperBound", true, TypeSymbol.Int, node.UpperBound.ConstantValue);
-            var upperBoundDeclaration = new BoundVariableDeclaration(upperBoundSymbol, node.UpperBound);
-            var condition = new BoundBinaryExpression(
-                variableExpression,
-                BoundBinaryOperator.Bind(SyntaxKind.LessOrEqualsToken, TypeSymbol.Int, TypeSymbol.Int)!,
-                new BoundVariableExpression(upperBoundSymbol)
-            );
-            var continueLabelStatement = new BoundLabelStatement(node.ContinueLabel);
-            var increment = new BoundExpressionStatement(
-                new BoundAssignmentExpression(
-                    node.Variable,
-                    new BoundBinaryExpression(
-                        variableExpression,
-                        BoundBinaryOperator.Bind(SyntaxKind.PlusToken, TypeSymbol.Int, TypeSymbol.Int)!,
-                        new BoundLiteralExpression(1)
-                    )
-                )
-            );
-            var whileBody = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
-                    node.Body,
-                    continueLabelStatement,
-                    increment)
-            );
-            var whileStatement = new BoundWhileStatement(condition, whileBody, node.BreakLabel, GenerateLabel());
-            var result = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(
-                variableDeclaration,
-                upperBoundDeclaration,
-                whileStatement
-            ));
-
-            return RewriteStatement(result);
+            if (GlobalScope.MainFunction != null)
+                EmitTree(GlobalScope.MainFunction, writer);
+            else if (GlobalScope.ScriptFunction != null)
+                EmitTree(GlobalScope.ScriptFunction, writer);
         }
 
-        protected override BoundStatement RewriteConditionalGotoStatement(BoundConditionalGotoStatement node)
+        public void EmitTree(FunctionSymbol symbol, TextWriter writer)
         {
-            if (node.Condition.ConstantValue != null)
-            {
-                var condition = (bool)node.Condition.ConstantValue.Value;
-                condition = node.JumpIfTrue ? condition : !condition;
-                if (condition)
-                    return RewriteStatement(new BoundGotoStatement(node.Label));
-                else
-                    return RewriteStatement(new BoundNopStatement());
-            }
+            var program = GetProgram();
+            symbol.WriteTo(writer);
+            writer.WriteLine();
+            if (!program.Functions.TryGetValue(symbol, out var body))
+                return;
+            body.WriteTo(writer);
+        }
 
-            return base.RewriteConditionalGotoStatement(node);
+        // TODO: References should be part of the compilation, not arguments for Emit
+        public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath)
+        {
+            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
+
+            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
+            if (diagnostics.HasErrors())
+                return diagnostics;
+
+            var program = GetProgram();
+            return Emitter.Emit(program, moduleName, references, outputPath);
         }
     }
 }
