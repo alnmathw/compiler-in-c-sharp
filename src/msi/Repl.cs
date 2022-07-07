@@ -5,9 +5,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Minsk.IO;
+using Compiler.IO;
 
-namespace Minsk
+namespace Compiler
 {
     internal abstract class Repl
     {

@@ -1,10 +1,10 @@
-namespace Minsk
+namespace Compiler
 {
     internal static class Program
     {
         private static void Main()
         {
-            var repl = new MinskRepl();
+            var repl = new CompilerRepl();
             repl.Run();
         }
     }

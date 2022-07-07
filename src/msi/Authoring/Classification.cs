@@ -1,4 +1,4 @@
-namespace Minsk.CodeAnalysis.Authoring
+namespace Compiler.CodeAnalysis.Authoring
 {
     public enum Classification
     {

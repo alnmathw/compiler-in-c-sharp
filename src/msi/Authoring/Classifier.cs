@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Immutable;
 
-using Minsk.CodeAnalysis.Syntax;
-using Minsk.CodeAnalysis.Text;
+using Compiler.CodeAnalysis.Syntax;
+using Compiler.CodeAnalysis.Text;
 
-namespace Minsk.CodeAnalysis.Authoring
+namespace Compiler.CodeAnalysis.Authoring
 {
     public static class Classifier
     {

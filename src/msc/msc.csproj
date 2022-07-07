@@ -4,13 +4,13 @@
     <IsTool>true</IsTool>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <ProjectName>Minsk</ProjectName>
-    <RootNamespace>Minsk</RootNamespace>
+    <ProjectName>Compiler</ProjectName>
+    <RootNamespace>Compiler</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Minsk\Minsk.csproj" />
+    <ProjectReference Include="..\Compiler\Compiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>

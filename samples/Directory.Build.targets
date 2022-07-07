@@ -11,17 +11,17 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <MinskCompilerArgs>@(Compile->'"%(Identity)"', ' ')</MinskCompilerArgs>
-      <MinskCompilerArgs>$(MinskCompilerArgs) /o "@(IntermediateAssembly)"</MinskCompilerArgs>
-      <MinskCompilerArgs>$(MinskCompilerArgs) @(ReferencePath->'/r "%(Identity)"', ' ')</MinskCompilerArgs>
+      <CompilerCompilerArgs>@(Compile->'"%(Identity)"', ' ')</CompilerCompilerArgs>
+      <CompilerCompilerArgs>$(CompilerCompilerArgs) /o "@(IntermediateAssembly)"</CompilerCompilerArgs>
+      <CompilerCompilerArgs>$(CompilerCompilerArgs) @(ReferencePath->'/r "%(Identity)"', ' ')</CompilerCompilerArgs>
 
-      <MinskScriptExt Condition="$([MSBuild]::IsOSUnixLike())">.sh</MinskScriptExt>
-      <MinskScriptExt Condition="$([MSBuild]::IsOSPlatform('Windows'))">.cmd</MinskScriptExt>
-      <MinskCompilerScript Condition="'$(MinskCompilerScript)' == ''">msc$(MinskScriptExt)</MinskCompilerScript>
-      <MinskCompileCommand>"$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)..\', '$(MinskCompilerScript)'))" $(MinskCompilerArgs)</MinskCompileCommand>
+      <CompilerScriptExt Condition="$([MSBuild]::IsOSUnixLike())">.sh</CompilerScriptExt>
+      <CompilerScriptExt Condition="$([MSBuild]::IsOSPlatform('Windows'))">.cmd</CompilerScriptExt>
+      <CompilerCompilerScript Condition="'$(CompilerCompilerScript)' == ''">msc$(CompilerScriptExt)</CompilerCompilerScript>
+      <CompilerCompileCommand>"$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)..\', '$(CompilerCompilerScript)'))" $(CompilerCompilerArgs)</CompilerCompileCommand>
     </PropertyGroup>
 
-    <Exec Command="$(MinskCompileCommand)" />
+    <Exec Command="$(CompilerCompileCommand)" />
   </Target>
 
 </Project>
