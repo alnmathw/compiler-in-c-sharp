@@ -4,14 +4,14 @@
     "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/msi/msi.csproj": {}
   },
   "projects": {
-    "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj": {
+    "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj",
-        "projectName": "Minsk",
-        "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj",
+        "projectUniqueName": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj",
+        "projectName": "Compiler",
+        "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj",
         "packagesPath": "/home/alnmathw/.nuget/packages/",
-        "outputPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/obj/",
+        "outputPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/alnmathw/.nuget/NuGet/NuGet.Config"
@@ -89,8 +89,8 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj": {
-                "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj"
+              "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj": {
+                "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj"
               }
             }
           }

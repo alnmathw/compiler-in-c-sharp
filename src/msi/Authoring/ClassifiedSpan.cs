@@ -1,6 +1,6 @@
-using Minsk.CodeAnalysis.Text;
+using Compiler.CodeAnalysis.Text;
 
-namespace Minsk.CodeAnalysis.Authoring
+namespace Compiler.CodeAnalysis.Authoring
 {
     public sealed class ClassifiedSpan
     {

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Minsk.CodeAnalysis;
-using Minsk.CodeAnalysis.Syntax;
-using Minsk.IO;
+using Compiler.CodeAnalysis;
+using Compiler.CodeAnalysis.Syntax;
+using Compiler.IO;
 using Mono.Options;
 
-namespace Minsk
+namespace Compiler
 {
     internal static class Program
     {

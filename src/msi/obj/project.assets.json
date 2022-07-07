@@ -32,7 +32,7 @@
           "lib/netstandard2.0/System.Collections.Immutable.dll": {}
         }
       },
-      "Minsk/1.0.0": {
+      "Compiler/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v3.1",
         "dependencies": {
@@ -41,10 +41,10 @@
           "System.Collections.Immutable": "1.7.0"
         },
         "compile": {
-          "bin/placeholder/Minsk.dll": {}
+          "bin/placeholder/Compiler.dll": {}
         },
         "runtime": {
-          "bin/placeholder/Minsk.dll": {}
+          "bin/placeholder/Compiler.dll": {}
         }
       }
     }
@@ -290,16 +290,16 @@
         "version.txt"
       ]
     },
-    "Minsk/1.0.0": {
+    "Compiler/1.0.0": {
       "type": "project",
-      "path": "../Minsk/Minsk.csproj",
-      "msbuildProject": "../Minsk/Minsk.csproj"
+      "path": "../Compiler/Compiler.csproj",
+      "msbuildProject": "../Compiler/Compiler.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.1": [
       "Microsoft.NET.Compilers.ToolSet >= 3.6.0-4.final",
-      "Minsk >= 1.0.0"
+      "Compiler >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -326,8 +326,8 @@
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj": {
-              "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Minsk/Minsk.csproj"
+            "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj": {
+              "projectPath": "/home/alnmathw/Documents/Projects/object-oriented-programming/compiler-in-c-sharp/Compiler-in-C-Sharp/src/Compiler/Compiler.csproj"
             }
           }
         }
